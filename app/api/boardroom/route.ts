@@ -4,12 +4,16 @@ import OpenAI from "openai";
 import { getAllAgents } from "@/lib/agents";
 import { Agent } from "@/lib/types";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getAnthropicClient() {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+}
+function getOpenAIClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+}
 
 async function queryAgent(agent: Agent, question: string): Promise<string> {
   if (agent.provider === "anthropic") {
-    const response = await anthropic.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: agent.model,
       max_tokens: 2048,
       system: agent.systemPrompt + "\n\nYou are in a boardroom meeting with the other C-suite executives. Keep your response focused and concise (under 500 words). Address the founder's question from your specific area of expertise.",
@@ -18,7 +22,7 @@ async function queryAgent(agent: Agent, question: string): Promise<string> {
     const block = response.content[0];
     return block.type === "text" ? block.text : "";
   } else {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: agent.model,
       max_tokens: 2048,
       messages: [

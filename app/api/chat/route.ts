@@ -3,8 +3,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { getAgent } from "@/lib/agents";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getAnthropicClient() {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+}
+function getOpenAIClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+}
 
 export async function POST(req: NextRequest) {
   const { agentId, messages } = await req.json();
@@ -21,7 +25,7 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       try {
         if (agent.provider === "anthropic") {
-          const response = await anthropic.messages.stream({
+          const response = await getAnthropicClient().messages.stream({
             model: agent.model,
             max_tokens: 4096,
             system: agent.systemPrompt,
@@ -44,7 +48,7 @@ export async function POST(req: NextRequest) {
             }
           }
         } else {
-          const response = await openai.chat.completions.create({
+          const response = await getOpenAIClient().chat.completions.create({
             model: agent.model,
             max_tokens: 4096,
             stream: true,
