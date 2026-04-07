@@ -33,16 +33,9 @@ export interface ThemeConfig {
   chartColors: string[];
 }
 
-// Which slide types get dark/gradient backgrounds
-export function shouldUseDarkBg(layout: string, index: number): boolean {
-  // Title and closing always dark
+// Only title and closing get dark backgrounds — everything else stays clean/light
+export function shouldUseDarkBg(layout: string, _index: number): boolean {
   if (layout === "title" || layout === "closing") return true;
-  // Stats and metric slides look great on dark
-  if (layout === "stats" || layout === "okr") return true;
-  // Alternate: every other content-heavy slide
-  if (layout === "content" || layout === "two-column" || layout === "icon-grid") {
-    return index % 3 === 2; // Every 3rd slide
-  }
   return false;
 }
 

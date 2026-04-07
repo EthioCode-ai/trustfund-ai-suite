@@ -6,28 +6,33 @@ import { Chart } from "./Chart";
 import { Presentation, Download, ExternalLink } from "lucide-react";
 import { useState } from "react";
 
-function ProgressRing({ value, size = 100, color = "#6366f1", label }: { value: number; size?: number; color?: string; label?: string }) {
-  const strokeWidth = size * 0.1;
+function ProgressRing({ value, size = 110, color = "#10b981", label }: { value: number; size?: number; color?: string; label?: string }) {
+  const strokeWidth = size * 0.09;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (Math.min(value, 100) / 100) * circumference;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(255,255,255,0.15)" strokeWidth={strokeWidth} fill="none" />
-        <circle
-          cx={size / 2} cy={size / 2} r={radius}
-          stroke={color} strokeWidth={strokeWidth} fill="none"
-          strokeDasharray={circumference} strokeDashoffset={offset}
-          strokeLinecap="round"
-          style={{ transition: "stroke-dashoffset 1s ease-out" }}
-        />
-      </svg>
-      <div style={{ position: "relative", marginTop: -size * 0.65, fontSize: size * 0.28, fontWeight: 800, color: "#fff", textAlign: "center" }}>
-        {value}%
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div style={{ position: "relative", width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+          <circle cx={size / 2} cy={size / 2} r={radius} stroke="#e2e8f0" strokeWidth={strokeWidth} fill="none" />
+          <circle
+            cx={size / 2} cy={size / 2} r={radius}
+            stroke={color} strokeWidth={strokeWidth} fill="none"
+            strokeDasharray={circumference} strokeDashoffset={offset}
+            strokeLinecap="round"
+            style={{ transition: "stroke-dashoffset 1s ease-out" }}
+          />
+        </svg>
+        <div style={{
+          position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+          fontSize: size * 0.26, fontWeight: 800, color: "#0f172a", textAlign: "center",
+        }}>
+          {value}%
+        </div>
       </div>
-      {label && <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)", marginTop: size * 0.15, textAlign: "center", fontWeight: 500 }}>{label}</div>}
+      {label && <div style={{ fontSize: "0.85rem", color: "#475569", marginTop: 10, textAlign: "center", fontWeight: 600 }}>{label}</div>}
     </div>
   );
 }
@@ -432,41 +437,48 @@ function Slide({
         </div>
       )}
 
-      {/* STATS — always dark bg with bold cards */}
-      {slide.layout === "stats" && slide.stats && (
+      {/* STATS — white bg with high-contrast colored cards */}
+      {slide.layout === "stats" && slide.stats && (() => {
+        const statColors = ["#6366f1", "#10b981", "#f59e0b", "#ec4899", "#0ea5e9", "#ef4444"];
+        // Ensure even grid: if 4 items, use 2x2; if 3, use 3x1; if 2, use 2x1
+        const count = Math.min(slide.stats.length, 4);
+        const cols = count === 4 ? 2 : count;
+
+        return (
         <>
-          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: heading, marginBottom: theme.contentGap, width: "100%" }}>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
             {slide.title}
           </h3>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(slide.stats.length, 3)}, 1fr)`, gap: 24, width: "100%" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 24, width: "100%", alignItems: "start" }}>
             {slide.stats.slice(0, 4).map((stat, i) => {
-              // Check if value looks like a percentage for progress ring
+              const color = statColors[i % statColors.length];
               const numMatch = stat.value.match(/^(\d+)%$/);
               const isPercent = !!numMatch;
 
               return (
                 <div key={i} style={{
                   textAlign: "center",
-                  padding: "28px 20px",
-                  background: "rgba(255,255,255,0.08)",
+                  padding: "32px 24px",
+                  background: "#fff",
                   borderRadius: 16,
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  backdropFilter: "blur(8px)",
+                  border: `1px solid #e2e8f0`,
+                  borderTop: `4px solid ${color}`,
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
                 }}>
                   {isPercent ? (
-                    <ProgressRing value={parseInt(numMatch![1])} size={90} color={accent} label={stat.label} />
+                    <ProgressRing value={parseInt(numMatch![1])} size={110} color={color} label={stat.label} />
                   ) : (
                     <>
-                      <div style={{ fontSize: "2.4rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                      <div style={{ fontSize: "2.6rem", fontWeight: 800, color: color, letterSpacing: "-0.03em", lineHeight: 1 }}>
                         {stat.value}
                       </div>
-                      <div style={{ fontSize: theme.bodySize, fontWeight: 600, color: "rgba(255,255,255,0.9)", marginTop: 12 }}>
+                      <div style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", marginTop: 12 }}>
                         {stat.label}
                       </div>
                     </>
                   )}
                   {stat.context && !isPercent && (
-                    <div style={{ fontSize: theme.captionSize, color: "rgba(255,255,255,0.5)", marginTop: 6, lineHeight: 1.4 }}>
+                    <div style={{ fontSize: theme.captionSize, color: "#64748b", marginTop: 8, lineHeight: 1.4 }}>
                       {stat.context}
                     </div>
                   )}
@@ -475,7 +487,8 @@ function Slide({
             })}
           </div>
         </>
-      )}
+        );
+      })()}
 
       {/* TIMELINE */}
       {slide.layout === "timeline" && slide.timeline && (
@@ -596,15 +609,19 @@ function Slide({
           <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
             {slide.title}
           </h3>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(slide.iconGrid.length, 3)}, 1fr)`, gap: 24, width: "100%" }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(slide.iconGrid.length, 3)}, 1fr)`, gap: 20, width: "100%" }}>
             {slide.iconGrid.slice(0, 6).map((item, i) => (
-              <div key={i} style={{ padding: "20px 16px", borderRadius: 12, background: `${theme.accentColor}04`, border: `1px solid ${theme.accentColor}10` }}>
-                <div style={{ fontSize: "1.5rem", marginBottom: 12 }}>{item.icon}</div>
-                <div style={{ fontSize: theme.captionSize, fontWeight: 600, color: theme.titleColor, marginBottom: 6 }}>
+              <div key={i} style={{
+                padding: "24px 20px", borderRadius: 14,
+                background: "#fff", border: "1px solid #e2e8f0",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
+              }}>
+                <div style={{ fontSize: "2rem", marginBottom: 14 }}>{item.icon}</div>
+                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>
                   {item.title}
                 </div>
                 {item.description && (
-                  <div style={{ fontSize: "0.78rem", color: theme.mutedColor, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.5 }}>
                     {item.description}
                   </div>
                 )}
