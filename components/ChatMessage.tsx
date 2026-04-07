@@ -100,15 +100,16 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
 
         {/* Charts */}
         {charts.length > 0 && (
-          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 16 }}>
             {charts.map((chart, i) => (
               <div
                 key={i}
                 style={{
                   background: "#fff",
-                  borderRadius: 12,
-                  padding: 20,
+                  borderRadius: 16,
+                  padding: "24px 20px",
                   border: "1px solid #e2e8f0",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
                 }}
               >
                 <Chart data={chart} />

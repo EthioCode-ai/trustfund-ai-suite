@@ -192,14 +192,14 @@ function Slide({
               fontSize: theme.headingSize,
               fontWeight: theme.headingWeight,
               color: theme.titleColor,
-              marginBottom: 24,
+              marginBottom: 16,
               width: "100%",
               lineHeight: 1.2,
             }}
           >
             {slide.title}
           </h3>
-          <div style={{ width: "100%", flex: 1, display: "flex", alignItems: "center" }}>
+          <div style={{ width: "100%", flex: 1, minHeight: 320 }}>
             {slide.chartData && <Chart data={slide.chartData} colors={theme.chartColors} />}
           </div>
         </>
@@ -277,7 +277,24 @@ function Slide({
       )}
 
       {/* TEAM */}
-      {slide.layout === "team" && (
+      {slide.layout === "team" && (() => {
+        // Smart parsing: handle both "Name — Title — Background" and separate bullets
+        const teamMembers: { name: string; role: string; background: string }[] = [];
+        for (const b of bullets) {
+          const parts = b.split(/\s*[—–-]\s*/).map(s => s.trim()).filter(Boolean);
+          if (parts.length >= 2) {
+            teamMembers.push({ name: parts[0], role: parts[1], background: parts.slice(2).join(", ") });
+          } else if (parts.length === 1 && teamMembers.length > 0 && !teamMembers[teamMembers.length - 1].background) {
+            teamMembers[teamMembers.length - 1].background = parts[0];
+          } else if (parts.length === 1) {
+            teamMembers.push({ name: parts[0], role: "", background: "" });
+          }
+        }
+        // If we ended up with entries that have no role, they might be split incorrectly
+        // Consolidate: if only 1 entry has a name that looks like a real name, keep it
+        const validMembers = teamMembers.filter(m => m.name && m.name.length < 50);
+
+        return (
         <>
           <h3
             style={{
@@ -290,56 +307,56 @@ function Slide({
           >
             {slide.title}
           </h3>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(bullets.length, 3)}, 1fr)`, gap: 28, width: "100%" }}>
-            {bullets.map((b, i) => {
-              const parts = b.split("—").map((s) => s.trim());
-              return (
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(validMembers.length, 3)}, 1fr)`, gap: 28, width: "100%" }}>
+            {validMembers.map((member, i) => (
                 <div
                   key={i}
                   style={{
                     textAlign: "center",
-                    padding: "28px 20px",
-                    background: `${theme.accentColor}04`,
+                    padding: "32px 24px",
+                    background: "#fff",
                     borderRadius: theme.borderRadius,
                     border: `1px solid ${theme.accentColor}10`,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
                   }}
                 >
                   <div
                     style={{
-                      width: 56,
-                      height: 56,
+                      width: 64,
+                      height: 64,
                       borderRadius: "50%",
                       background: theme.accentGradient,
-                      margin: "0 auto 16px",
+                      margin: "0 auto 18px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: "#fff",
                       fontWeight: 700,
-                      fontSize: "1.3rem",
+                      fontSize: "1.4rem",
+                      boxShadow: `0 4px 16px ${theme.accentColor}30`,
                     }}
                   >
-                    {parts[0]?.[0] || "?"}
+                    {member.name[0] || "?"}
                   </div>
-                  <div style={{ fontWeight: 600, color: theme.titleColor, fontSize: theme.bodySize, marginBottom: 4 }}>
-                    {parts[0]}
+                  <div style={{ fontWeight: 700, color: theme.titleColor, fontSize: theme.bodySize, marginBottom: 4 }}>
+                    {member.name}
                   </div>
-                  {parts[1] && (
-                    <div style={{ color: theme.accentColor, fontSize: theme.captionSize, fontWeight: 500, marginBottom: 6 }}>
-                      {parts[1]}
+                  {member.role && (
+                    <div style={{ color: theme.accentColor, fontSize: theme.captionSize, fontWeight: 600, marginBottom: 6 }}>
+                      {member.role}
                     </div>
                   )}
-                  {parts[2] && (
+                  {member.background && (
                     <div style={{ color: theme.mutedColor, fontSize: theme.captionSize, lineHeight: 1.5 }}>
-                      {parts[2]}
+                      {member.background}
                     </div>
                   )}
                 </div>
-              );
-            })}
+              ))}
           </div>
         </>
-      )}
+        );
+      })()}
 
       {/* CLOSING */}
       {slide.layout === "closing" && (

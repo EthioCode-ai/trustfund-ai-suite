@@ -1,13 +1,19 @@
 "use client";
 
 import { ChartData } from "@/lib/tools";
+import {
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, AreaChart,
+  ResponsiveContainer, FunnelChart, Funnel, LabelList,
+} from "recharts";
 
 function formatValue(n: number, unit?: string): string {
   const u = unit || "";
 
   if (u === "$") {
-    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+    if (Math.abs(n) >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
+    if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+    if (Math.abs(n) >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
     return `$${n.toLocaleString()}`;
   }
   if (u === "%") return `${n}%`;
@@ -15,198 +21,204 @@ function formatValue(n: number, unit?: string): string {
   if (u === "x") return `${n}x`;
   if (u === "#") return n.toLocaleString();
 
-  // If unit is a custom string like "users", "donors"
   if (u) return `${n.toLocaleString()} ${u}`;
 
-  // No unit — smart format
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
+  if (Math.abs(n) >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (Math.abs(n) >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
   return n.toLocaleString();
 }
 
-function BarChart({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
-  const maxVal = Math.max(...data.datasets.flatMap((d) => d.data));
-
-  return (
-    <div style={{ width: "100%", padding: "20px 0" }}>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, height: 280, marginBottom: 12 }}>
-        {data.labels.map((label, i) => (
-          <div key={`${label}-${i}`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%" }}>
-            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#334155", marginBottom: 6 }}>
-              {formatValue(data.datasets[0]?.data[i] || 0, unit)}
-            </span>
-            <div style={{ flex: 1, display: "flex", alignItems: "flex-end", width: "100%", gap: 3 }}>
-              {data.datasets.map((ds, di) => {
-                const height = maxVal > 0 ? (ds.data[i] / maxVal) * 100 : 0;
-                return (
-                  <div
-                    key={di}
-                    style={{
-                      flex: 1,
-                      height: `${Math.max(height, 2)}%`,
-                      background: ds.color || colors[di % colors.length],
-                      borderRadius: "8px 8px 0 0",
-                      transition: "height 0.8s ease-out",
-                      minHeight: 6,
-                    }}
-                  />
-                );
-              })}
-            </div>
-            <span style={{ fontSize: "0.78rem", color: "#64748b", marginTop: 8, textAlign: "center", lineHeight: 1.3 }}>
-              {label}
-            </span>
-          </div>
-        ))}
-      </div>
-      {data.datasets.length > 1 && (
-        <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 12 }}>
-          {data.datasets.map((ds, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 12, height: 12, borderRadius: 4, background: ds.color || colors[i % colors.length] }} />
-              <span style={{ fontSize: "0.8rem", color: "#475569", fontWeight: 500 }}>{ds.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+function formatTick(n: number, unit?: string): string {
+  return formatValue(n, unit);
 }
 
-function LineChart({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
-  const allValues = data.datasets.flatMap((d) => d.data);
-  const maxVal = Math.max(...allValues);
-  const minVal = Math.min(...allValues);
-  const range = maxVal - minVal || 1;
-  const chartH = 260;
-  const chartW = 100;
-  const padTop = 15;
-  const padBot = 10;
+const CHART_MARGIN = { top: 20, right: 30, left: 20, bottom: 10 };
 
-  return (
-    <div style={{ width: "100%", padding: "20px 0" }}>
-      <svg viewBox={`0 0 ${chartW} ${chartH + 40}`} style={{ width: "100%", height: 320 }}>
-        {/* Grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((frac) => {
-          const y = padTop + (1 - frac) * (chartH - padTop - padBot);
-          const val = minVal + frac * range;
-          return (
-            <g key={frac}>
-              <line x1={8} y1={y} x2={chartW - 2} y2={y} stroke="#e2e8f0" strokeWidth={0.3} />
-              <text x={4} y={y + 1.5} fontSize={3} fill="#94a3b8" textAnchor="end">
-                {formatValue(Math.round(val), unit)}
-              </text>
-            </g>
-          );
-        })}
-
-        {data.datasets.map((ds, di) => {
-          const points = ds.data.map((val, i) => {
-            const x = data.labels.length > 1
-              ? (i / (data.labels.length - 1)) * (chartW - 20) + 10
-              : chartW / 2;
-            const y = padTop + (1 - (val - minVal) / range) * (chartH - padTop - padBot);
-            return { x, y, val };
-          });
-          const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
-          const areaD = pathD + ` L ${points[points.length - 1].x} ${chartH - padBot} L ${points[0].x} ${chartH - padBot} Z`;
-          const color = ds.color || colors[di % colors.length];
-
-          return (
-            <g key={di}>
-              <defs>
-                <linearGradient id={`grad-${di}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={color} stopOpacity={0.25} />
-                  <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <path d={areaD} fill={`url(#grad-${di})`} />
-              <path d={pathD} fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-              {points.map((p, i) => (
-                <g key={i}>
-                  <circle cx={p.x} cy={p.y} r={2.5} fill={color} />
-                  <text x={p.x} y={p.y - 5} textAnchor="middle" fontSize={3} fill="#334155" fontWeight="600">
-                    {formatValue(p.val, unit)}
-                  </text>
-                </g>
-              ))}
-            </g>
-          );
-        })}
-
-        {/* X-axis labels */}
-        {data.labels.map((label, i) => {
-          const x = data.labels.length > 1
-            ? (i / (data.labels.length - 1)) * (chartW - 20) + 10
-            : chartW / 2;
-          return (
-            <text key={i} x={x} y={chartH + 8} textAnchor="middle" fontSize={3.5} fill="#64748b">
-              {label}
-            </text>
-          );
-        })}
-
-        {/* Legend */}
-        {data.datasets.length > 1 && data.datasets.map((ds, i) => {
-          const color = ds.color || colors[i % colors.length];
-          const xOffset = (chartW / 2) - (data.datasets.length * 15) + i * 30;
-          return (
-            <g key={i}>
-              <rect x={xOffset} y={chartH + 18} width={6} height={3} rx={1} fill={color} />
-              <text x={xOffset + 8} y={chartH + 21} fontSize={3} fill="#475569">{ds.label}</text>
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
-function PieChart({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
-  const values = data.datasets[0]?.data || [];
-  const total = values.reduce((a, b) => a + b, 0);
-  let cumulativeAngle = -90;
-
-  const slices = values.map((val, i) => {
-    const angle = total > 0 ? (val / total) * 360 : 0;
-    const startAngle = cumulativeAngle;
-    cumulativeAngle += angle;
-    const endAngle = cumulativeAngle;
-
-    const startRad = (startAngle * Math.PI) / 180;
-    const endRad = (endAngle * Math.PI) / 180;
-    const x1 = 50 + 40 * Math.cos(startRad);
-    const y1 = 50 + 40 * Math.sin(startRad);
-    const x2 = 50 + 40 * Math.cos(endRad);
-    const y2 = 50 + 40 * Math.sin(endRad);
-    const largeArc = angle > 180 ? 1 : 0;
-
-    return {
-      d: `M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArc} 1 ${x2} ${y2} Z`,
-      label: data.labels[i],
-      value: val,
-      percentage: total > 0 ? ((val / total) * 100).toFixed(0) : "0",
-    };
+function RechartBar({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  const chartData = data.labels.map((label, i) => {
+    const point: Record<string, string | number> = { name: label };
+    data.datasets.forEach((ds, di) => {
+      point[ds.label || `series${di}`] = ds.data[i] || 0;
+    });
+    return point;
   });
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 32, padding: "20px 0", justifyContent: "center" }}>
-      <svg viewBox="0 0 100 100" style={{ width: 220, height: 220 }}>
-        {slices.map((slice, i) => (
-          <path key={i} d={slice.d} fill={colors[i % colors.length]} stroke="#fff" strokeWidth={0.8} />
+    <ResponsiveContainer width="100%" height={320}>
+      <BarChart data={chartData} margin={CHART_MARGIN} barCategoryGap="20%">
+        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f020" vertical={false} />
+        <XAxis
+          dataKey="name"
+          tick={{ fill: "#64748b", fontSize: 13, fontWeight: 500 }}
+          axisLine={{ stroke: "#e2e8f0" }}
+          tickLine={false}
+        />
+        <YAxis
+          tickFormatter={(v) => formatTick(v, unit)}
+          tick={{ fill: "#94a3b8", fontSize: 12 }}
+          axisLine={false}
+          tickLine={false}
+          width={70}
+        />
+        <Tooltip
+          formatter={(value) => formatValue(Number(value), unit)}
+          contentStyle={{
+            background: "#1e293b",
+            border: "none",
+            borderRadius: 10,
+            color: "#f1f5f9",
+            fontSize: 13,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          }}
+          cursor={{ fill: "rgba(99, 102, 241, 0.06)" }}
+        />
+        {data.datasets.length > 1 && (
+          <Legend
+            wrapperStyle={{ fontSize: 13, color: "#64748b", paddingTop: 12 }}
+          />
+        )}
+        {data.datasets.map((ds, di) => (
+          <Bar
+            key={di}
+            dataKey={ds.label || `series${di}`}
+            fill={ds.color || colors[di % colors.length]}
+            radius={[8, 8, 0, 0]}
+            maxBarSize={64}
+          >
+            <LabelList
+              dataKey={ds.label || `series${di}`}
+              position="top"
+              formatter={(v) => formatValue(Number(v), unit)}
+              style={{ fill: "#334155", fontSize: 12, fontWeight: 600 }}
+            />
+          </Bar>
         ))}
-      </svg>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {slices.map((slice, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+function RechartLine({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  const chartData = data.labels.map((label, i) => {
+    const point: Record<string, string | number> = { name: label };
+    data.datasets.forEach((ds, di) => {
+      point[ds.label || `series${di}`] = ds.data[i] || 0;
+    });
+    return point;
+  });
+
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <AreaChart data={chartData} margin={CHART_MARGIN}>
+        <defs>
+          {data.datasets.map((ds, di) => {
+            const color = ds.color || colors[di % colors.length];
+            return (
+              <linearGradient key={di} id={`gradient-${di}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={color} stopOpacity={0.02} />
+              </linearGradient>
+            );
+          })}
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f020" vertical={false} />
+        <XAxis
+          dataKey="name"
+          tick={{ fill: "#64748b", fontSize: 13, fontWeight: 500 }}
+          axisLine={{ stroke: "#e2e8f0" }}
+          tickLine={false}
+        />
+        <YAxis
+          tickFormatter={(v) => formatTick(v, unit)}
+          tick={{ fill: "#94a3b8", fontSize: 12 }}
+          axisLine={false}
+          tickLine={false}
+          width={70}
+        />
+        <Tooltip
+          formatter={(value) => formatValue(Number(value), unit)}
+          contentStyle={{
+            background: "#1e293b",
+            border: "none",
+            borderRadius: 10,
+            color: "#f1f5f9",
+            fontSize: 13,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          }}
+        />
+        {data.datasets.length > 1 && (
+          <Legend wrapperStyle={{ fontSize: 13, color: "#64748b", paddingTop: 12 }} />
+        )}
+        {data.datasets.map((ds, di) => {
+          const color = ds.color || colors[di % colors.length];
+          return (
+            <Area
+              key={di}
+              type="monotone"
+              dataKey={ds.label || `series${di}`}
+              stroke={color}
+              strokeWidth={3}
+              fill={`url(#gradient-${di})`}
+              dot={{ r: 5, fill: color, stroke: "#fff", strokeWidth: 2 }}
+              activeDot={{ r: 7, fill: color, stroke: "#fff", strokeWidth: 2 }}
+            />
+          );
+        })}
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function RechartPie({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  const values = data.datasets[0]?.data || [];
+  const total = values.reduce((a, b) => a + b, 0);
+  const chartData = data.labels.map((label, i) => ({
+    name: label,
+    value: values[i] || 0,
+    percentage: total > 0 ? ((values[i] / total) * 100).toFixed(0) : "0",
+  }));
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 40, width: "100%" }}>
+      <ResponsiveContainer width="50%" height={300}>
+        <PieChart>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            outerRadius={120}
+            innerRadius={60}
+            paddingAngle={3}
+            dataKey="value"
+            stroke="none"
+          >
+            {chartData.map((_, i) => (
+              <Cell key={i} fill={colors[i % colors.length]} />
+            ))}
+          </Pie>
+          <Tooltip
+            formatter={(value) => formatValue(Number(value), unit)}
+            contentStyle={{
+              background: "#1e293b",
+              border: "none",
+              borderRadius: 10,
+              color: "#f1f5f9",
+              fontSize: 13,
+              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+        {chartData.map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ width: 14, height: 14, borderRadius: 4, background: colors[i % colors.length], flexShrink: 0 }} />
-            <div>
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#334155" }}>
-                {slice.label}
-              </span>
-              <span style={{ fontSize: "0.8rem", color: "#64748b", marginLeft: 8 }}>
-                {slice.percentage}% ({formatValue(slice.value, unit)})
-              </span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#334155" }}>{item.name}</div>
+              <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                {formatValue(item.value, unit)} ({item.percentage}%)
+              </div>
             </div>
           </div>
         ))}
@@ -215,81 +227,94 @@ function PieChart({ data, colors, unit }: { data: ChartData; colors: string[]; u
   );
 }
 
-function MetricChart({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+function MetricCards({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(data.labels.length, 4)}, 1fr)`, gap: 20, padding: "20px 0" }}>
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(data.labels.length, 4)}, 1fr)`, gap: 20, width: "100%" }}>
       {data.labels.map((label, i) => (
         <div
           key={i}
           style={{
-            background: `${colors[i % colors.length]}08`,
-            border: `1px solid ${colors[i % colors.length]}25`,
+            background: "#fff",
             borderRadius: 16,
-            padding: "28px 20px",
+            padding: "32px 24px",
             textAlign: "center",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
+            border: `1px solid ${colors[i % colors.length]}15`,
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          <div style={{ fontSize: "2rem", fontWeight: 700, color: colors[i % colors.length], letterSpacing: "-0.02em" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: colors[i % colors.length], opacity: 0.7 }} />
+          <div style={{ fontSize: "2.2rem", fontWeight: 800, color: colors[i % colors.length], letterSpacing: "-0.03em", lineHeight: 1 }}>
             {formatValue(data.datasets[0]?.data[i] || 0, unit)}
           </div>
-          <div style={{ fontSize: "0.82rem", color: "#64748b", marginTop: 6, fontWeight: 500 }}>{label}</div>
+          <div style={{ fontSize: "0.85rem", color: "#64748b", marginTop: 10, fontWeight: 500 }}>{label}</div>
         </div>
       ))}
     </div>
   );
 }
 
-function FunnelChart({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
-  const maxVal = Math.max(...(data.datasets[0]?.data || [1]));
+function RechartFunnel({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  const chartData = data.labels.map((label, i) => ({
+    name: label,
+    value: data.datasets[0]?.data[i] || 0,
+    fill: colors[i % colors.length],
+  }));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "20px 0", alignItems: "center" }}>
-      {data.labels.map((label, i) => {
-        const val = data.datasets[0]?.data[i] || 0;
-        const width = maxVal > 0 ? (val / maxVal) * 100 : 0;
-        return (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 16, width: "100%" }}>
-            <span style={{ fontSize: "0.82rem", color: "#475569", width: 100, textAlign: "right", fontWeight: 500 }}>{label}</span>
-            <div
-              style={{
-                height: 40,
-                width: `${width}%`,
-                background: colors[i % colors.length],
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                paddingLeft: 16,
-                transition: "width 0.8s ease-out",
-                minWidth: 50,
-              }}
-            >
-              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#fff" }}>
-                {formatValue(val, unit)}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <ResponsiveContainer width="100%" height={320}>
+      <FunnelChart>
+        <Tooltip
+          formatter={(value) => formatValue(Number(value), unit)}
+          contentStyle={{
+            background: "#1e293b",
+            border: "none",
+            borderRadius: 10,
+            color: "#f1f5f9",
+            fontSize: 13,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          }}
+        />
+        <Funnel
+          dataKey="value"
+          data={chartData}
+          isAnimationActive
+        >
+          <LabelList
+            position="right"
+            fill="#334155"
+            stroke="none"
+            dataKey="name"
+            style={{ fontSize: 13, fontWeight: 500 }}
+          />
+          <LabelList
+            position="center"
+            formatter={(v) => formatValue(Number(v), unit)}
+            style={{ fill: "#fff", fontSize: 13, fontWeight: 700 }}
+          />
+        </Funnel>
+      </FunnelChart>
+    </ResponsiveContainer>
   );
 }
 
 export function Chart({ data, colors }: { data: ChartData; colors?: string[] }) {
-  const c = colors || ["#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#10b981", "#f59e0b"];
+  const c = colors || ["#6366f1", "#818cf8", "#a5b4fc", "#10b981", "#f59e0b", "#ef4444"];
   const unit = data.unit;
 
   return (
-    <div style={{ margin: "8px 0", width: "100%" }}>
+    <div style={{ width: "100%" }}>
       {data.title && (
-        <h4 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 8, color: "#0f172a" }}>
+        <h4 style={{ fontSize: "0.95rem", fontWeight: 600, marginBottom: 16, color: "#334155" }}>
           {data.title}
         </h4>
       )}
-      {data.type === "bar" && <BarChart data={data} colors={c} unit={unit} />}
-      {data.type === "line" && <LineChart data={data} colors={c} unit={unit} />}
-      {data.type === "pie" && <PieChart data={data} colors={c} unit={unit} />}
-      {data.type === "metric" && <MetricChart data={data} colors={c} unit={unit} />}
-      {data.type === "funnel" && <FunnelChart data={data} colors={c} unit={unit} />}
+      {data.type === "bar" && <RechartBar data={data} colors={c} unit={unit} />}
+      {data.type === "line" && <RechartLine data={data} colors={c} unit={unit} />}
+      {data.type === "pie" && <RechartPie data={data} colors={c} unit={unit} />}
+      {data.type === "metric" && <MetricCards data={data} colors={c} unit={unit} />}
+      {data.type === "funnel" && <RechartFunnel data={data} colors={c} unit={unit} />}
     </div>
   );
 }
