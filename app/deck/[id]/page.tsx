@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { DeckData } from "@/lib/tools";
-import { themes } from "@/lib/deck-themes";
+import { themes, ThemeConfig } from "@/lib/deck-themes";
 import { Chart } from "@/components/Chart";
-import { ChevronLeft, ChevronRight, X, Grid, Maximize } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Maximize } from "lucide-react";
 
 export default function DeckViewer({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -75,8 +75,9 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
     );
   }
 
-  const theme = themes[deck.theme] || themes.investor;
+  const theme: ThemeConfig = themes[deck.theme] || themes.investor;
   const slide = deck.slides[current];
+  const bullets = slide.bullets?.slice(0, 6) || [];
 
   return (
     <div
@@ -208,10 +209,10 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
           {slide.layout === "title" && (
             <>
               <div style={{ width: 80, height: 4, background: theme.accentGradient, borderRadius: 2, marginBottom: 32 }} />
-              <h1 style={{ fontSize: "2.8rem", fontWeight: theme.titleFontWeight, color: theme.titleColor, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
+              <h1 style={{ fontSize: "2.8rem", fontWeight: theme.headingWeight, color: theme.titleColor, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
                 {slide.title}
               </h1>
-              {slide.subtitle && <p style={{ fontSize: "1.3rem", color: theme.subtitleColor, fontWeight: 500, marginTop: 16 }}>{slide.subtitle}</p>}
+              {slide.subtitle && <p style={{ fontSize: "1.3rem", color: theme.accentColor, fontWeight: 500, marginTop: 16 }}>{slide.subtitle}</p>}
             </>
           )}
 
@@ -223,7 +224,7 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
               <ul style={{ listStyle: "none", padding: 0, width: "100%" }}>
                 {slide.bullets?.map((b, i) => (
                   <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 18, fontSize: "1.15rem", color: theme.textColor, lineHeight: 1.6 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: theme.bulletColor, marginTop: 8, flexShrink: 0 }} />
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: theme.accentColor, marginTop: 8, flexShrink: 0 }} />
                     {b}
                   </li>
                 ))}
@@ -240,7 +241,7 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
                 <div>
                   {slide.bullets?.map((b, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14, fontSize: "1.05rem", color: theme.textColor, lineHeight: 1.5 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.bulletColor, marginTop: 8, flexShrink: 0 }} />
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: theme.accentColor, marginTop: 8, flexShrink: 0 }} />
                       {b}
                     </div>
                   ))}
@@ -267,7 +268,7 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
               {slide.imageUrl ? (
                 <img src={slide.imageUrl} alt={slide.title} style={{ width: "100%", maxHeight: 320, objectFit: "cover", borderRadius: 12, marginBottom: 16 }} />
               ) : (
-                <div style={{ width: "100%", height: 260, background: `${theme.accentColor}08`, border: `2px dashed ${theme.accentColor}30`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: theme.subtitleColor, fontSize: "1rem", marginBottom: 16 }}>
+                <div style={{ width: "100%", height: 260, background: `${theme.accentColor}08`, border: `2px dashed ${theme.accentColor}30`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: theme.accentColor, fontSize: "1rem", marginBottom: 16 }}>
                   {slide.imagePrompt || "Image placeholder"}
                 </div>
               )}
@@ -281,7 +282,7 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
               <p style={{ fontSize: "1.4rem", fontStyle: "italic", color: theme.titleColor, maxWidth: 600, lineHeight: 1.6, marginBottom: 20 }}>
                 {slide.title}
               </p>
-              {slide.subtitle && <p style={{ fontSize: "1rem", color: theme.subtitleColor, fontWeight: 500 }}>{slide.subtitle}</p>}
+              {slide.subtitle && <p style={{ fontSize: "1rem", color: theme.accentColor, fontWeight: 500 }}>{slide.subtitle}</p>}
             </>
           )}
 
@@ -299,7 +300,7 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
                         {parts[0]?.[0] || "?"}
                       </div>
                       <div style={{ fontWeight: 600, color: theme.titleColor, fontSize: "1rem" }}>{parts[0]}</div>
-                      {parts[1] && <div style={{ color: theme.subtitleColor, fontSize: "0.85rem", marginTop: 4 }}>{parts[1]}</div>}
+                      {parts[1] && <div style={{ color: theme.accentColor, fontSize: "0.85rem", marginTop: 4 }}>{parts[1]}</div>}
                       {parts[2] && <div style={{ color: theme.textColor, fontSize: "0.8rem", marginTop: 6 }}>{parts[2]}</div>}
                     </div>
                   );
@@ -310,10 +311,10 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
 
           {slide.layout === "closing" && (
             <>
-              <h1 style={{ fontSize: "2.4rem", fontWeight: theme.titleFontWeight, color: theme.titleColor, marginBottom: 16 }}>
+              <h1 style={{ fontSize: "2.4rem", fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: 16 }}>
                 {slide.title}
               </h1>
-              {slide.subtitle && <p style={{ fontSize: "1.1rem", color: theme.subtitleColor, marginBottom: 20 }}>{slide.subtitle}</p>}
+              {slide.subtitle && <p style={{ fontSize: "1.1rem", color: theme.accentColor, marginBottom: 20 }}>{slide.subtitle}</p>}
               {slide.bullets?.map((b, i) => (
                 <div key={i} style={{ display: "inline-block", padding: "12px 28px", background: theme.accentGradient, color: "#fff", borderRadius: 10, fontWeight: 600, fontSize: "1.05rem", marginTop: 12 }}>
                   {b}

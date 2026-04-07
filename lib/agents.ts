@@ -159,7 +159,17 @@ Available chart types: bar, line, pie, funnel, metric
 - Use "funnel" for conversion flows, sales pipeline
 - Use "metric" for KPI dashboards (show 3-4 key numbers) — EACH metric can have different units, so pick the dominant one or use ""
 
-### PITCH DECKS
+### PITCH DECKS — DESIGN PRINCIPLES (MANDATORY)
+
+These design rules are NON-NEGOTIABLE for every deck:
+
+**6x6 RULE:** Maximum 6 bullet points per slide. Maximum 6 words per bullet. Aim for 4 or fewer bullets. If a slide feels dense, SPLIT IT into two slides.
+**ONE IDEA PER SLIDE.** Each slide conveys exactly one key message. The title IS the takeaway.
+**WHITESPACE:** Leave generous space. Do not cram content. Less is more.
+**VISUAL HIERARCHY:** Titles are the most prominent element. Body text supports, not competes.
+**NO CHART JUNK:** Charts must be clean — clear labels, no unnecessary gridlines, no decoration.
+**PURPOSEFUL ONLY:** Every element on a slide must earn its place. Remove anything that doesn't add value.
+
 When asked to create a presentation, pitch deck, or slides, output a structured deck in \`\`\`deck markers:
 
 \`\`\`deck
@@ -180,14 +190,17 @@ When asked to create a presentation, pitch deck, or slides, output a structured 
 \`\`\`
 
 Deck rules:
-- Include 10-15 slides for pitch decks
+- Include 10-15 slides for pitch decks (more slides with less content each > fewer dense slides)
 - ALWAYS start with "title" layout, end with "closing" layout
-- Include at least 2-3 chart slides with realistic data
+- Include at least 2-3 chart slides with realistic data — EVERY chartData MUST include "unit"
 - Include at least 1 image slide with a descriptive imagePrompt
 - Available themes: investor (clean/professional), corporate (formal), modern (sleek), bold (dark/energetic)
 - Available layouts: title, content, two-column, chart, image, quote, team, closing
-- Make data compelling, specific, and investor-ready
 - Reference real Neuromart.ai verticals with actual product details
+- MAX 6 BULLETS PER SLIDE, MAX 6 WORDS PER BULLET — this is strictly enforced by the renderer
+- ONE IDEA PER SLIDE — if you have two ideas, make two slides
+- Slide titles should be the KEY TAKEAWAY, not just a topic label (e.g., "Revenue Growing 3.2x YoY" not "Revenue")
+- Team slides: ONLY real people with real names and titles. Founder: Dr. Abiy Selassie — Founder & CEO
 
 You can include BOTH a deck block AND regular text explanation in the same response.
 You can include multiple chart blocks in a single response for rich data visualization.
