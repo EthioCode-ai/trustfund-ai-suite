@@ -7,7 +7,6 @@ import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { ExportButton } from "@/components/ExportButton";
 import { Crown, DollarSign, Settings, Megaphone, Compass, Users, Save, Download } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { saveConversation, getConversation } from "@/lib/storage";
 
 const agentIcons: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -30,28 +29,32 @@ export default function AgentChat({
   params: Promise<{ agent: string }>;
 }) {
   const { agent: agentId } = use(params);
-  const searchParams = useSearchParams();
-  const resumeId = searchParams.get("resume");
   const agent = getAgent(agentId);
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [collabMode, setCollabMode] = useState(false);
   const [collabStatuses, setCollabStatuses] = useState<CollabStatus[]>([]);
-  const [conversationId, setConversationId] = useState<string>(resumeId || Date.now().toString());
+  const [conversationId, setConversationId] = useState<string>(Date.now().toString());
   const [saved, setSaved] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Resume a saved conversation from localStorage
+  // Resume a saved conversation from localStorage (parse URL manually to avoid Suspense requirement)
   useEffect(() => {
-    if (resumeId) {
-      const convo = getConversation(resumeId);
-      if (convo) {
-        setMessages(convo.messages);
-        setConversationId(convo.id);
-        setSaved(true);
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const resumeId = params.get("resume");
+      if (resumeId) {
+        const convo = getConversation(resumeId);
+        if (convo) {
+          setMessages(convo.messages);
+          setConversationId(convo.id);
+          setSaved(true);
+        }
       }
+    } catch {
+      // ignore
     }
-  }, [resumeId]);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
