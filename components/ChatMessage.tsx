@@ -4,9 +4,19 @@ import ReactMarkdown from "react-markdown";
 import { Crown, DollarSign, Settings, Megaphone, User } from "lucide-react";
 import { ChatMessage as ChatMessageType } from "@/lib/types";
 import { agents } from "@/lib/agents";
-import { parseDeckFromResponse, parseChartFromResponse, cleanResponseContent } from "@/lib/tools";
+import {
+  parseDeckFromResponse,
+  parseChartFromResponse,
+  parseCalendarFromResponse,
+  parseEmailFromResponse,
+  parseSMSFromResponse,
+  cleanResponseContent,
+} from "@/lib/tools";
 import { Chart } from "./Chart";
 import { SlidePreview } from "./SlidePreview";
+import { CalendarEvent } from "./CalendarEvent";
+import { EmailPreview } from "./EmailPreview";
+import { SMSPreview } from "./SMSPreview";
 import { useEffect } from "react";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -23,9 +33,11 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
 
   const deck = !isUser ? parseDeckFromResponse(message.content) : null;
   const charts = !isUser ? parseChartFromResponse(message.content) : [];
+  const calendarEvents = !isUser ? parseCalendarFromResponse(message.content) : [];
+  const emails = !isUser ? parseEmailFromResponse(message.content) : [];
+  const smsMessages = !isUser ? parseSMSFromResponse(message.content) : [];
   const cleanContent = !isUser ? cleanResponseContent(message.content) : message.content;
 
-  // Store deck in sessionStorage for the presentation viewer
   useEffect(() => {
     if (deck) {
       sessionStorage.setItem(`deck-${deck.id}`, JSON.stringify(deck));
@@ -85,7 +97,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
           )}
         </div>
 
-        {/* Render charts */}
+        {/* Charts */}
         {charts.length > 0 && (
           <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
             {charts.map((chart, i) => (
@@ -104,10 +116,37 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
           </div>
         )}
 
-        {/* Render deck preview */}
+        {/* Deck */}
         {deck && (
           <div style={{ marginTop: 12 }}>
             <SlidePreview deck={deck} />
+          </div>
+        )}
+
+        {/* Calendar events */}
+        {calendarEvents.length > 0 && (
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+            {calendarEvents.map((event, i) => (
+              <CalendarEvent key={i} {...event} />
+            ))}
+          </div>
+        )}
+
+        {/* Emails */}
+        {emails.length > 0 && (
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+            {emails.map((email, i) => (
+              <EmailPreview key={i} {...email} />
+            ))}
+          </div>
+        )}
+
+        {/* SMS */}
+        {smsMessages.length > 0 && (
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+            {smsMessages.map((sms, i) => (
+              <SMSPreview key={i} {...sms} />
+            ))}
           </div>
         )}
       </div>

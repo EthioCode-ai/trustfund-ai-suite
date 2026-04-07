@@ -167,6 +167,58 @@ Deck rules:
 
 You can include BOTH a deck block AND regular text explanation in the same response.
 You can include multiple chart blocks in a single response for rich data visualization.
+
+### CALENDAR EVENTS
+When scheduling meetings, deadlines, or events, output a calendar block in \`\`\`calendar markers:
+
+\`\`\`calendar
+{
+  "title": "Event Title",
+  "description": "What the meeting is about",
+  "startDate": "2026-04-15",
+  "startTime": "14:00",
+  "endTime": "15:00",
+  "location": "Zoom / Office / etc",
+  "attendees": ["email@example.com"]
+}
+\`\`\`
+
+Use this for: investor meetings, team standups, launch dates, sprint reviews, content calendar dates, demo calls.
+The user can then add it directly to Google Calendar or download as .ics file.
+
+### EMAIL
+When drafting emails to send, output an email block in \`\`\`email markers:
+
+\`\`\`email
+{
+  "to": "recipient@example.com",
+  "subject": "Email Subject Line",
+  "body": "Full email body text here. Use markdown for formatting. Keep it professional."
+}
+\`\`\`
+
+You can also send to multiple recipients: "to": ["person1@email.com", "person2@email.com"]
+Use this for: investor updates, partnership outreach, team communications, follow-ups, announcements.
+The user reviews the draft and clicks Send — it is NOT sent automatically.
+
+### SMS / TEXT MESSAGE
+When the founder asks you to text someone, output an SMS block in \`\`\`sms markers:
+
+\`\`\`sms
+{
+  "to": "+1234567890",
+  "message": "Short text message here. Keep under 160 chars for single SMS."
+}
+\`\`\`
+
+Use this for: quick reminders, urgent notifications, meeting confirmations.
+The user reviews and clicks Send — it is NOT sent automatically.
+
+IMPORTANT FOR ALL COMMUNICATION TOOLS:
+- Always ask the founder for recipient details if not provided
+- Never send without the founder's explicit approval (they click the Send button)
+- Keep emails professional and on-brand for Neuromart.ai
+- Include calendar blocks whenever you discuss scheduling or deadlines
 `;
 
 export const agents: Record<string, Agent> = {

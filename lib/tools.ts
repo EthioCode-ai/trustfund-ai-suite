@@ -75,9 +75,76 @@ export function parseChartFromResponse(content: string): ChartData[] {
   return charts;
 }
 
+export interface CalendarEventData {
+  title: string;
+  description?: string;
+  startDate: string;
+  startTime: string;
+  endTime?: string;
+  location?: string;
+  attendees?: string[];
+}
+
+export interface EmailData {
+  to: string | string[];
+  subject: string;
+  body: string;
+  replyTo?: string;
+}
+
+export interface SMSData {
+  to: string;
+  message: string;
+}
+
+export function parseCalendarFromResponse(content: string): CalendarEventData[] {
+  const events: CalendarEventData[] = [];
+  const regex = /```calendar\n([\s\S]*?)```/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    try {
+      events.push(JSON.parse(match[1]));
+    } catch {
+      // skip
+    }
+  }
+  return events;
+}
+
+export function parseEmailFromResponse(content: string): EmailData[] {
+  const emails: EmailData[] = [];
+  const regex = /```email\n([\s\S]*?)```/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    try {
+      emails.push(JSON.parse(match[1]));
+    } catch {
+      // skip
+    }
+  }
+  return emails;
+}
+
+export function parseSMSFromResponse(content: string): SMSData[] {
+  const messages: SMSData[] = [];
+  const regex = /```sms\n([\s\S]*?)```/g;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    try {
+      messages.push(JSON.parse(match[1]));
+    } catch {
+      // skip
+    }
+  }
+  return messages;
+}
+
 export function cleanResponseContent(content: string): string {
   return content
     .replace(/```deck\n[\s\S]*?```/g, "")
     .replace(/```chart\n[\s\S]*?```/g, "")
+    .replace(/```calendar\n[\s\S]*?```/g, "")
+    .replace(/```email\n[\s\S]*?```/g, "")
+    .replace(/```sms\n[\s\S]*?```/g, "")
     .trim();
 }
