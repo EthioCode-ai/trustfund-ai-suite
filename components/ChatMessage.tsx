@@ -4,6 +4,10 @@ import ReactMarkdown from "react-markdown";
 import { Crown, DollarSign, Settings, Megaphone, User } from "lucide-react";
 import { ChatMessage as ChatMessageType } from "@/lib/types";
 import { agents } from "@/lib/agents";
+import { parseDeckFromResponse, parseChartFromResponse, cleanResponseContent } from "@/lib/tools";
+import { Chart } from "./Chart";
+import { SlidePreview } from "./SlidePreview";
+import { useEffect } from "react";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   Crown,
@@ -16,6 +20,17 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
   const isUser = message.role === "user";
   const agent = message.agentId ? agents[message.agentId] : null;
   const Icon = agent ? iconMap[agent.icon] || Crown : User;
+
+  const deck = !isUser ? parseDeckFromResponse(message.content) : null;
+  const charts = !isUser ? parseChartFromResponse(message.content) : [];
+  const cleanContent = !isUser ? cleanResponseContent(message.content) : message.content;
+
+  // Store deck in sessionStorage for the presentation viewer
+  useEffect(() => {
+    if (deck) {
+      sessionStorage.setItem(`deck-${deck.id}`, JSON.stringify(deck));
+    }
+  }, [deck]);
 
   return (
     <div
@@ -45,26 +60,54 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
         <Icon size={16} />
       </div>
 
-      <div className={isUser ? "chat-bubble-user" : "chat-bubble-assistant"}>
-        {!isUser && agent && (
-          <p
-            style={{
-              fontSize: "0.7rem",
-              color: agent.color,
-              fontWeight: 600,
-              marginBottom: 6,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            {agent.name} — {agent.title}
-          </p>
+      <div style={{ maxWidth: isUser ? "80%" : "85%", width: isUser ? undefined : "85%" }}>
+        <div className={isUser ? "chat-bubble-user" : "chat-bubble-assistant"}>
+          {!isUser && agent && (
+            <p
+              style={{
+                fontSize: "0.7rem",
+                color: agent.color,
+                fontWeight: 600,
+                marginBottom: 6,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {agent.name} — {agent.title}
+            </p>
+          )}
+          {isUser ? (
+            <p style={{ fontSize: "0.95rem", lineHeight: 1.6 }}>{message.content}</p>
+          ) : (
+            <div style={{ fontSize: "0.95rem", lineHeight: 1.6 }}>
+              <ReactMarkdown>{cleanContent}</ReactMarkdown>
+            </div>
+          )}
+        </div>
+
+        {/* Render charts */}
+        {charts.length > 0 && (
+          <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+            {charts.map((chart, i) => (
+              <div
+                key={i}
+                style={{
+                  background: "#fff",
+                  borderRadius: 12,
+                  padding: 20,
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <Chart data={chart} />
+              </div>
+            ))}
+          </div>
         )}
-        {isUser ? (
-          <p style={{ fontSize: "0.95rem", lineHeight: 1.6 }}>{message.content}</p>
-        ) : (
-          <div style={{ fontSize: "0.95rem", lineHeight: 1.6 }}>
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+
+        {/* Render deck preview */}
+        {deck && (
+          <div style={{ marginTop: 12 }}>
+            <SlidePreview deck={deck} />
           </div>
         )}
       </div>

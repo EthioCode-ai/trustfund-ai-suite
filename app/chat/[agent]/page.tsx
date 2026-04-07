@@ -5,6 +5,7 @@ import { getAgent } from "@/lib/agents";
 import { ChatMessage as ChatMessageType } from "@/lib/types";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
+import { ExportButton } from "@/components/ExportButton";
 
 export default function AgentChat({
   params,
@@ -157,12 +158,22 @@ export default function AgentChat({
             style={{ background: agent.color, width: 10, height: 10 }}
           />
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 600 }}>{agent.name}</h2>
           <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
             {agent.title} — {agent.provider === "anthropic" ? "Claude" : "GPT-4o"}
           </p>
         </div>
+        {messages.length > 0 && (
+          <ExportButton
+            content={messages
+              .filter((m) => m.role === "assistant")
+              .map((m) => m.content)
+              .join("\n\n---\n\n")}
+            filename={`trustfund-${agent.id}-report`}
+            label="Export Chat"
+          />
+        )}
       </div>
 
       {/* Messages */}
