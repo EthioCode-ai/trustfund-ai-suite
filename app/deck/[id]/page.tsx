@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { DeckData } from "@/lib/tools";
-import { themes, ThemeConfig } from "@/lib/deck-themes";
+import { themes, ThemeConfig, shouldUseDarkBg } from "@/lib/deck-themes";
 import { Chart } from "@/components/Chart";
+import { getDeck } from "@/lib/storage";
 import { ChevronLeft, ChevronRight, X, Maximize } from "lucide-react";
 
 export default function DeckViewer({ params }: { params: Promise<{ id: string }> }) {
@@ -13,13 +14,19 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
+    // Try sessionStorage first, then localStorage
     const stored = sessionStorage.getItem(`deck-${id}`);
     if (stored) {
       try {
         setDeck(JSON.parse(stored));
+        return;
       } catch {
-        // invalid data
+        // try localStorage
       }
+    }
+    const saved = getDeck(id);
+    if (saved) {
+      setDeck(saved as unknown as DeckData);
     }
   }, [id]);
 
@@ -77,7 +84,12 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
 
   const theme: ThemeConfig = themes[deck.theme] || themes.investor;
   const slide = deck.slides[current];
+  if (!slide) return <div style={{ padding: 48, color: "#fff" }}>Invalid slide</div>;
   const bullets = slide.bullets?.slice(0, 6) || [];
+  const isDark = shouldUseDarkBg(slide.layout, current);
+  const slideBg = isDark ? theme.darkBg : theme.bgSlide;
+  const headingColor = isDark ? theme.darkText : theme.titleColor;
+  const textColor = isDark ? theme.darkMuted : theme.textColor;
 
   return (
     <div
@@ -168,7 +180,7 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
           key={current}
           style={{
             width: "min(900px, 80vw)",
-            background: theme.bgSlide,
+            background: slideBg,
             borderRadius: theme.borderRadius,
             padding: "60px 72px",
             minHeight: "min(560px, 70vh)",
@@ -208,11 +220,11 @@ export default function DeckViewer({ params }: { params: Promise<{ id: string }>
 
           {slide.layout === "title" && (
             <>
-              <div style={{ width: 80, height: 4, background: theme.accentGradient, borderRadius: 2, marginBottom: 32 }} />
-              <h1 style={{ fontSize: "2.8rem", fontWeight: theme.headingWeight, color: theme.titleColor, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
+              <div style={{ width: 80, height: 4, background: isDark ? "rgba(255,255,255,0.4)" : theme.accentGradient, borderRadius: 2, marginBottom: 32 }} />
+              <h1 style={{ fontSize: "2.8rem", fontWeight: theme.headingWeight, color: headingColor, letterSpacing: "-0.03em", lineHeight: 1.15 }}>
                 {slide.title}
               </h1>
-              {slide.subtitle && <p style={{ fontSize: "1.3rem", color: theme.accentColor, fontWeight: 500, marginTop: 16 }}>{slide.subtitle}</p>}
+              {slide.subtitle && <p style={{ fontSize: "1.3rem", color: isDark ? theme.darkAccent : theme.accentColor, fontWeight: 500, marginTop: 16 }}>{slide.subtitle}</p>}
             </>
           )}
 

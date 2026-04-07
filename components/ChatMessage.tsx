@@ -18,6 +18,7 @@ import { CalendarEvent } from "./CalendarEvent";
 import { EmailPreview } from "./EmailPreview";
 import { SMSPreview } from "./SMSPreview";
 import { useEffect } from "react";
+import { saveDeck } from "@/lib/storage";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   Crown,
@@ -42,12 +43,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
   useEffect(() => {
     if (deck) {
       sessionStorage.setItem(`deck-${deck.id}`, JSON.stringify(deck));
-      // Auto-save deck to server
-      fetch("/api/decks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "save", deck }),
-      }).catch(() => {});
+      saveDeck(deck);
     }
   }, [deck]);
 

@@ -6,8 +6,9 @@ import { ChatMessage as ChatMessageType, AgentRole } from "@/lib/types";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { ExportButton } from "@/components/ExportButton";
-import { Crown, DollarSign, Settings, Megaphone, Compass, Users, Save } from "lucide-react";
+import { Crown, DollarSign, Settings, Megaphone, Compass, Users, Save, Download } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { saveConversation, getConversation } from "@/lib/storage";
 
 const agentIcons: Record<string, React.ComponentType<{ size?: number }>> = {
   Crown,
@@ -40,19 +41,15 @@ export default function AgentChat({
   const [saved, setSaved] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Resume a saved conversation
+  // Resume a saved conversation from localStorage
   useEffect(() => {
     if (resumeId) {
-      fetch(`/api/conversations?id=${resumeId}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.conversation) {
-            setMessages(data.conversation.messages);
-            setConversationId(data.conversation.id);
-            setSaved(true);
-          }
-        })
-        .catch(() => {});
+      const convo = getConversation(resumeId);
+      if (convo) {
+        setMessages(convo.messages);
+        setConversationId(convo.id);
+        setSaved(true);
+      }
     }
   }, [resumeId]);
 
@@ -60,20 +57,30 @@ export default function AgentChat({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, collabStatuses]);
 
-  const handleSave = async () => {
-    if (messages.length === 0) return;
-    await fetch("/api/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "save",
-        id: conversationId,
-        agentId: agent?.id,
-        messages,
-      }),
+  const handleSave = () => {
+    if (messages.length === 0 || !agent) return;
+    saveConversation({
+      id: conversationId,
+      agentId: agent.id,
+      title: messages.find((m) => m.role === "user")?.content?.slice(0, 80) || "Untitled",
+      messages,
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleDownload = () => {
+    if (messages.length === 0) return;
+    const content = messages
+      .map((m) => `**${m.role === "user" ? "You" : agent?.name || "Assistant"}:**\n${m.content}`)
+      .join("\n\n---\n\n");
+    const blob = new Blob([content], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `neuromart-${agent?.id}-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (!agent) {
@@ -368,13 +375,25 @@ export default function AgentChat({
                 <Save size={13} />
                 {saved ? "Saved!" : "Save"}
               </button>
+              <button
+                onClick={handleDownload}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "6px 12px", borderRadius: 8,
+                  border: "1px solid var(--border)", background: "var(--bg-tertiary)",
+                  color: "var(--text-secondary)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                <Download size={13} />
+                Download
+              </button>
               <ExportButton
                 content={messages
                   .filter((m) => m.role === "assistant")
                   .map((m) => m.content)
                   .join("\n\n---\n\n")}
                 filename={`neuromart-${agent.id}-report`}
-                label="Export"
+                label="Export HTML"
               />
             </>
           )}

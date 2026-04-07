@@ -36,6 +36,7 @@ function formatTick(n: number, unit?: string): string {
 const CHART_MARGIN = { top: 20, right: 30, left: 20, bottom: 10 };
 
 function RechartBar({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  if (!data.labels?.length || !data.datasets?.length) return null;
   const chartData = data.labels.map((label, i) => {
     const point: Record<string, string | number> = { name: label };
     data.datasets.forEach((ds, di) => {
@@ -100,6 +101,7 @@ function RechartBar({ data, colors, unit }: { data: ChartData; colors: string[];
 }
 
 function RechartLine({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  if (!data.labels?.length || !data.datasets?.length) return null;
   const chartData = data.labels.map((label, i) => {
     const point: Record<string, string | number> = { name: label };
     data.datasets.forEach((ds, di) => {
@@ -171,6 +173,7 @@ function RechartLine({ data, colors, unit }: { data: ChartData; colors: string[]
 }
 
 function RechartPie({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  if (!data.labels?.length || !data.datasets?.[0]?.data?.length) return null;
   const values = data.datasets[0]?.data || [];
   const total = values.reduce((a, b) => a + b, 0);
   const chartData = data.labels.map((label, i) => ({
@@ -256,6 +259,7 @@ function MetricCards({ data, colors, unit }: { data: ChartData; colors: string[]
 }
 
 function RechartFunnel({ data, colors, unit }: { data: ChartData; colors: string[]; unit?: string }) {
+  if (!data.labels?.length || !data.datasets?.[0]?.data?.length) return null;
   const chartData = data.labels.map((label, i) => ({
     name: label,
     value: data.datasets[0]?.data[i] || 0,
@@ -363,6 +367,7 @@ function ComparisonTable({ data, colors }: { data: ChartData; colors: string[] }
 }
 
 export function Chart({ data, colors }: { data: ChartData; colors?: string[] }) {
+  if (!data || !data.type) return null;
   const c = colors || ["#6366f1", "#818cf8", "#a5b4fc", "#10b981", "#f59e0b", "#ef4444"];
   const unit = data.unit;
 
