@@ -10,6 +10,7 @@ import {
   Megaphone,
   Compass,
   Users,
+  History,
 } from "lucide-react";
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/chat/cmo", label: "CMO — Jordan", icon: Megaphone, color: "#ec4899" },
   { href: "/chat/cso", label: "CSO — Lena", icon: Compass, color: "#0ea5e9" },
   { href: "/boardroom", label: "Boardroom", icon: Users },
+  { href: "/history", label: "History", icon: History },
 ];
 
 export function Sidebar() {

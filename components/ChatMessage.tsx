@@ -42,6 +42,12 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
   useEffect(() => {
     if (deck) {
       sessionStorage.setItem(`deck-${deck.id}`, JSON.stringify(deck));
+      // Auto-save deck to server
+      fetch("/api/decks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save", deck }),
+      }).catch(() => {});
     }
   }, [deck]);
 
