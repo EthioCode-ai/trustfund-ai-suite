@@ -1,5 +1,5 @@
-export type AgentRole = "ceo" | "cfo" | "coo" | "cmo";
-export type ModelProvider = "anthropic" | "openai";
+export type AgentRole = "ceo" | "cfo" | "coo" | "cmo" | "cso";
+export type ModelProvider = "anthropic" | "openai" | "google";
 
 export interface Agent {
   id: AgentRole;

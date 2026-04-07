@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Crown, DollarSign, Settings, Megaphone } from "lucide-react";
+import { Crown, DollarSign, Settings, Megaphone, Compass } from "lucide-react";
 import { Agent } from "@/lib/types";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -9,6 +9,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   DollarSign,
   Settings,
   Megaphone,
+  Compass,
 };
 
 export function AgentCard({ agent }: { agent: Agent }) {

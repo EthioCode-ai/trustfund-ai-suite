@@ -8,6 +8,7 @@ import {
   DollarSign,
   Settings,
   Megaphone,
+  Compass,
   Users,
 } from "lucide-react";
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/chat/cfo", label: "CFO — Marcus", icon: DollarSign, color: "#10b981" },
   { href: "/chat/coo", label: "COO — Priya", icon: Settings, color: "#f59e0b" },
   { href: "/chat/cmo", label: "CMO — Jordan", icon: Megaphone, color: "#ec4899" },
+  { href: "/chat/cso", label: "CSO — Lena", icon: Compass, color: "#0ea5e9" },
   { href: "/boardroom", label: "Boardroom", icon: Users },
 ];
 
@@ -83,7 +85,7 @@ export function Sidebar() {
       })}
 
       <div style={{ marginTop: "auto", padding: "16px", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-        <p>Powered by Claude & GPT</p>
+        <p>Powered by Claude, GPT & Gemini</p>
       </div>
     </aside>
   );

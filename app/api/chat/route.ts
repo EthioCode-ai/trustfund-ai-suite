@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getAgent } from "@/lib/agents";
 
 function getAnthropicClient() {
@@ -8,6 +9,9 @@ function getAnthropicClient() {
 }
 function getOpenAIClient() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+}
+function getGeminiClient() {
+  return new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
 }
 
 export async function POST(req: NextRequest) {
@@ -44,6 +48,36 @@ export async function POST(req: NextRequest) {
             ) {
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`)
+              );
+            }
+          }
+        } else if (agent.provider === "google") {
+          const genAI = getGeminiClient();
+          const model = genAI.getGenerativeModel({ model: agent.model });
+
+          const geminiHistory = messages.slice(0, -1).map(
+            (m: { role: string; content: string }) => ({
+              role: m.role === "assistant" ? "model" : "user",
+              parts: [{ text: m.content }],
+            })
+          );
+
+          const chat = model.startChat({
+            history: [
+              { role: "user", parts: [{ text: "System instructions: " + agent.systemPrompt }] },
+              { role: "model", parts: [{ text: "Understood. I will follow these instructions precisely." }] },
+              ...geminiHistory,
+            ],
+          });
+
+          const lastMessage = messages[messages.length - 1]?.content || "";
+          const result = await chat.sendMessageStream(lastMessage);
+
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+              controller.enqueue(
+                encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
               );
             }
           }

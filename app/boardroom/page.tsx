@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { getAllAgents } from "@/lib/agents";
 import { ChatInput } from "@/components/ChatInput";
-import { Crown, DollarSign, Settings, Megaphone, Users } from "lucide-react";
+import { Crown, DollarSign, Settings, Megaphone, Compass, Users } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Agent, AgentRole } from "@/lib/types";
 
@@ -12,6 +12,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   DollarSign,
   Settings,
   Megaphone,
+  Compass,
 };
 
 interface BoardResponse {

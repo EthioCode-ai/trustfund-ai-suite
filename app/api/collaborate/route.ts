@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { agents } from "@/lib/agents";
 
 function getAnthropicClient() {
@@ -9,6 +10,11 @@ function getAnthropicClient() {
 function getOpenAIClient() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 }
+function getGeminiClient() {
+  return new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+}
+
+const CONSULT_SUFFIX = "\n\nYou are being consulted by the CEO (Alexandria Vale) for a specific deliverable. Provide your expert input concisely and with concrete data, numbers, and specifics. Do NOT include chart or deck blocks — just raw content the CEO will incorporate. Stay under 600 words. Be specific, not generic.";
 
 async function queryExecutive(
   agentId: string,
@@ -21,24 +27,28 @@ async function queryExecutive(
     const response = await getAnthropicClient().messages.create({
       model: agent.model,
       max_tokens: 3000,
-      system:
-        agent.systemPrompt +
-        "\n\nYou are being consulted by the CEO (Alexandria Vale) for a specific deliverable. Provide your expert input concisely and with concrete data, numbers, and specifics. Do NOT include chart or deck blocks — just raw content the CEO will incorporate. Stay under 600 words. Be specific, not generic.",
+      system: agent.systemPrompt + CONSULT_SUFFIX,
       messages: [{ role: "user", content: question }],
     });
     const block = response.content[0];
     return block.type === "text" ? block.text : "";
+  } else if (agent.provider === "google") {
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({ model: agent.model });
+    const chat = model.startChat({
+      history: [
+        { role: "user", parts: [{ text: "System instructions: " + agent.systemPrompt + CONSULT_SUFFIX }] },
+        { role: "model", parts: [{ text: "Understood. I will follow these instructions precisely." }] },
+      ],
+    });
+    const result = await chat.sendMessage(question);
+    return result.response.text();
   } else {
     const response = await getOpenAIClient().chat.completions.create({
       model: agent.model,
       max_tokens: 3000,
       messages: [
-        {
-          role: "system",
-          content:
-            agent.systemPrompt +
-            "\n\nYou are being consulted by the CEO (Alexandria Vale) for a specific deliverable. Provide your expert input concisely and with concrete data, numbers, and specifics. Do NOT include chart or deck blocks — just raw content the CEO will incorporate. Stay under 600 words. Be specific, not generic.",
-        },
+        { role: "system", content: agent.systemPrompt + CONSULT_SUFFIX },
         { role: "user", content: question },
       ],
     });
@@ -54,7 +64,8 @@ Given the founder's request, decide what specific questions to ask each executiv
 {
   "cfo": "Specific question for Marcus Chen (CFO) — ask for financial data, projections, pricing, unit economics, etc.",
   "coo": "Specific question for Priya Nakamura (COO) — ask for ops plans, hiring, timelines, process, etc.",
-  "cmo": "Specific question for Jordan Okafor (CMO) — ask for market analysis, GTM, positioning, competitive data, etc."
+  "cmo": "Specific question for Jordan Okafor (CMO) — ask for market analysis, GTM, positioning, competitive data, etc.",
+  "cso": "Specific question for Lena Mikhailova (CSO) — ask for market intelligence, competitive landscape, TAM/SAM/SOM, strategic positioning, industry trends, etc."
 }
 \`\`\`
 
@@ -79,7 +90,6 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        // Step 1: CEO decides what to delegate
         send("status", { phase: "planning", message: "CEO is analyzing your request..." });
 
         const anthropic = getAnthropicClient();
@@ -103,84 +113,66 @@ export async function POST(req: NextRequest) {
         let cfoInput = "";
         let cooInput = "";
         let cmoInput = "";
+        let csoInput = "";
 
         if (delegateMatch) {
           try {
             const delegation = JSON.parse(delegateMatch[1]);
-
-            // Step 2: Query executives in parallel
             const queries: Promise<void>[] = [];
 
             if (delegation.cfo) {
-              send("status", {
-                phase: "consulting",
-                agent: "cfo",
-                message: "Consulting CFO Marcus Chen...",
-              });
+              send("status", { phase: "consulting", agent: "cfo", message: "Consulting CFO Marcus Chen..." });
               queries.push(
                 queryExecutive("cfo", delegation.cfo).then((r) => {
                   cfoInput = r;
-                  send("status", {
-                    phase: "received",
-                    agent: "cfo",
-                    message: "CFO input received",
-                  });
+                  send("status", { phase: "received", agent: "cfo", message: "CFO input received" });
                 })
               );
             }
 
             if (delegation.coo) {
-              send("status", {
-                phase: "consulting",
-                agent: "coo",
-                message: "Consulting COO Priya Nakamura...",
-              });
+              send("status", { phase: "consulting", agent: "coo", message: "Consulting COO Priya Nakamura..." });
               queries.push(
                 queryExecutive("coo", delegation.coo).then((r) => {
                   cooInput = r;
-                  send("status", {
-                    phase: "received",
-                    agent: "coo",
-                    message: "COO input received",
-                  });
+                  send("status", { phase: "received", agent: "coo", message: "COO input received" });
                 })
               );
             }
 
             if (delegation.cmo) {
-              send("status", {
-                phase: "consulting",
-                agent: "cmo",
-                message: "Consulting CMO Jordan Okafor...",
-              });
+              send("status", { phase: "consulting", agent: "cmo", message: "Consulting CMO Jordan Okafor..." });
               queries.push(
                 queryExecutive("cmo", delegation.cmo).then((r) => {
                   cmoInput = r;
-                  send("status", {
-                    phase: "received",
-                    agent: "cmo",
-                    message: "CMO input received",
-                  });
+                  send("status", { phase: "received", agent: "cmo", message: "CMO input received" });
+                })
+              );
+            }
+
+            if (delegation.cso) {
+              send("status", { phase: "consulting", agent: "cso", message: "Consulting CSO Lena Mikhailova..." });
+              queries.push(
+                queryExecutive("cso", delegation.cso).then((r) => {
+                  csoInput = r;
+                  send("status", { phase: "received", agent: "cso", message: "CSO input received" });
                 })
               );
             }
 
             await Promise.all(queries);
           } catch {
-            // If delegation parsing fails, proceed without
+            // proceed without
           }
         }
 
-        // Step 3: CEO synthesizes everything into final deliverable
-        send("status", {
-          phase: "synthesizing",
-          message: "CEO is assembling the final deliverable...",
-        });
+        send("status", { phase: "synthesizing", message: "CEO is assembling the final deliverable..." });
 
         const executiveInputs = [
           cfoInput && `## CFO (Marcus Chen) Input:\n${cfoInput}`,
           cooInput && `## COO (Priya Nakamura) Input:\n${cooInput}`,
           cmoInput && `## CMO (Jordan Okafor) Input:\n${cmoInput}`,
+          csoInput && `## CSO (Lena Mikhailova) Input:\n${csoInput}`,
         ]
           .filter(Boolean)
           .join("\n\n");
@@ -191,7 +183,7 @@ ${executiveInputs || "No executive input was gathered — produce your best deli
 
 Now synthesize ALL of this into a single, comprehensive, polished deliverable that directly answers the founder's original request. Incorporate the specific data, numbers, and insights from each executive — don't just summarize them, WEAVE them into a cohesive response.
 
-If the founder asked for a pitch deck, create a full \`\`\`deck block with the executives' data integrated into the slides (financial projections from CFO in chart slides, GTM from CMO in content slides, ops timeline from COO, etc.).
+If the founder asked for a pitch deck, create a full \`\`\`deck block with the executives' data integrated into the slides (financial projections from CFO in chart slides, GTM from CMO in content slides, ops timeline from COO, competitive landscape from CSO, etc.).
 
 If they asked for analysis or strategy, produce a unified document with data from all executives.
 
@@ -208,10 +200,7 @@ IMPORTANT: This is a FINAL deliverable for the founder. Make it comprehensive, p
               content: m.content,
             })),
             { role: "user", content: userMessage },
-            {
-              role: "assistant",
-              content: "Let me consult my executive team and put this together for you.",
-            },
+            { role: "assistant", content: "Let me consult my executive team and put this together for you." },
             { role: "user", content: synthesisPrompt },
           ],
         });
@@ -219,10 +208,7 @@ IMPORTANT: This is a FINAL deliverable for the founder. Make it comprehensive, p
         send("status", { phase: "streaming", message: "Delivering final response..." });
 
         for await (const event of synthesisStream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
+          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
             send("text", event.delta.text);
           }
         }
@@ -230,8 +216,7 @@ IMPORTANT: This is a FINAL deliverable for the founder. Make it comprehensive, p
         send("done", null);
         controller.close();
       } catch (error: unknown) {
-        const message =
-          error instanceof Error ? error.message : "Collaboration failed";
+        const message = error instanceof Error ? error.message : "Collaboration failed";
         send("error", message);
         controller.close();
       }

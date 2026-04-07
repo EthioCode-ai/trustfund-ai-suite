@@ -6,13 +6,14 @@ import { ChatMessage as ChatMessageType, AgentRole } from "@/lib/types";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { ExportButton } from "@/components/ExportButton";
-import { Crown, DollarSign, Settings, Megaphone, Users } from "lucide-react";
+import { Crown, DollarSign, Settings, Megaphone, Compass, Users } from "lucide-react";
 
 const agentIcons: Record<string, React.ComponentType<{ size?: number }>> = {
   Crown,
   DollarSign,
   Settings,
   Megaphone,
+  Compass,
 };
 
 interface CollabStatus {
