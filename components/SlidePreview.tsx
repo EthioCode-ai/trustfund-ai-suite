@@ -380,6 +380,230 @@ function Slide({
         </div>
       )}
 
+      {/* STATS */}
+      {slide.layout === "stats" && slide.stats && (
+        <>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+            {slide.title}
+          </h3>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(slide.stats.length, 3)}, 1fr)`, gap: 28, width: "100%" }}>
+            {slide.stats.slice(0, 4).map((stat, i) => (
+              <div key={i} style={{ textAlign: "center", padding: "24px 16px" }}>
+                <div style={{ fontSize: "2.4rem", fontWeight: 800, color: theme.accentColor, letterSpacing: "-0.03em", lineHeight: 1 }}>
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: theme.bodySize, fontWeight: 600, color: theme.titleColor, marginTop: 12 }}>
+                  {stat.label}
+                </div>
+                {stat.context && (
+                  <div style={{ fontSize: theme.captionSize, color: theme.mutedColor, marginTop: 6, lineHeight: 1.4 }}>
+                    {stat.context}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* TIMELINE */}
+      {slide.layout === "timeline" && slide.timeline && (
+        <>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+            {slide.title}
+          </h3>
+          <div style={{ display: "flex", width: "100%", position: "relative", paddingTop: 16 }}>
+            {/* Line */}
+            <div style={{ position: "absolute", top: 28, left: 0, right: 0, height: 2, background: `${theme.accentColor}20` }} />
+            {slide.timeline.slice(0, 6).map((item, i) => (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative", zIndex: 1 }}>
+                <div style={{
+                  width: 14, height: 14, borderRadius: "50%",
+                  background: item.status === "done" ? theme.accentColor : item.status === "active" ? theme.accentColor : `${theme.accentColor}30`,
+                  border: item.status === "active" ? `3px solid ${theme.accentColor}40` : "none",
+                  marginBottom: 16,
+                }} />
+                <div style={{ fontSize: theme.captionSize, fontWeight: 600, color: theme.accentColor, marginBottom: 4 }}>
+                  {item.date}
+                </div>
+                <div style={{ fontSize: theme.captionSize, fontWeight: 600, color: theme.titleColor, textAlign: "center", lineHeight: 1.3 }}>
+                  {item.title}
+                </div>
+                {item.description && (
+                  <div style={{ fontSize: "0.75rem", color: theme.mutedColor, textAlign: "center", marginTop: 4, lineHeight: 1.3, maxWidth: 120 }}>
+                    {item.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* COMPARISON */}
+      {slide.layout === "comparison" && slide.comparison && (
+        <>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+            {slide.title}
+          </h3>
+          <div style={{ width: "100%", overflow: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: theme.captionSize }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: "12px 16px", textAlign: "left", color: theme.mutedColor, fontWeight: 500, borderBottom: `2px solid ${theme.accentColor}15` }}>Feature</th>
+                  {slide.comparison.columns.map((col, i) => (
+                    <th key={i} style={{
+                      padding: "12px 16px", textAlign: "center", fontWeight: 700,
+                      color: col.highlight ? theme.accentColor : theme.titleColor,
+                      borderBottom: `2px solid ${col.highlight ? theme.accentColor : theme.accentColor + "15"}`,
+                      background: col.highlight ? `${theme.accentColor}06` : "transparent",
+                    }}>
+                      {col.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {slide.comparison.features.map((feat, fi) => (
+                  <tr key={fi}>
+                    <td style={{ padding: "10px 16px", color: theme.textColor, fontWeight: 500, borderBottom: `1px solid ${theme.accentColor}08` }}>
+                      {feat}
+                    </td>
+                    {slide.comparison!.columns.map((col, ci) => (
+                      <td key={ci} style={{
+                        padding: "10px 16px", textAlign: "center", color: theme.textColor,
+                        borderBottom: `1px solid ${theme.accentColor}08`,
+                        background: col.highlight ? `${theme.accentColor}04` : "transparent",
+                      }}>
+                        {col.values[fi] || "—"}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* PROCESS */}
+      {slide.layout === "process" && slide.process && (
+        <>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+            {slide.title}
+          </h3>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%" }}>
+            {slide.process.slice(0, 5).map((step, i) => (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+                {i > 0 && (
+                  <div style={{ position: "absolute", top: 20, left: -8, width: 16, height: 2, background: `${theme.accentColor}30` }} />
+                )}
+                <div style={{
+                  width: 40, height: 40, borderRadius: "50%", background: theme.accentGradient,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#fff", fontWeight: 700, fontSize: "1rem", marginBottom: 16, flexShrink: 0,
+                }}>
+                  {step.step}
+                </div>
+                <div style={{ fontSize: theme.captionSize, fontWeight: 600, color: theme.titleColor, textAlign: "center", marginBottom: 6, lineHeight: 1.3 }}>
+                  {step.title}
+                </div>
+                {step.description && (
+                  <div style={{ fontSize: "0.75rem", color: theme.mutedColor, textAlign: "center", lineHeight: 1.4, maxWidth: 140 }}>
+                    {step.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* ICON GRID */}
+      {slide.layout === "icon-grid" && slide.iconGrid && (
+        <>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+            {slide.title}
+          </h3>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(slide.iconGrid.length, 3)}, 1fr)`, gap: 24, width: "100%" }}>
+            {slide.iconGrid.slice(0, 6).map((item, i) => (
+              <div key={i} style={{ padding: "20px 16px", borderRadius: 12, background: `${theme.accentColor}04`, border: `1px solid ${theme.accentColor}10` }}>
+                <div style={{ fontSize: "1.5rem", marginBottom: 12 }}>{item.icon}</div>
+                <div style={{ fontSize: theme.captionSize, fontWeight: 600, color: theme.titleColor, marginBottom: 6 }}>
+                  {item.title}
+                </div>
+                {item.description && (
+                  <div style={{ fontSize: "0.78rem", color: theme.mutedColor, lineHeight: 1.5 }}>
+                    {item.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* SWOT ANALYSIS */}
+      {slide.layout === "swot" && slide.swot && (
+        <>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+            {slide.title}
+          </h3>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%" }}>
+            {([
+              { key: "strengths", label: "Strengths", color: "#10b981", items: slide.swot.strengths },
+              { key: "weaknesses", label: "Weaknesses", color: "#ef4444", items: slide.swot.weaknesses },
+              { key: "opportunities", label: "Opportunities", color: "#6366f1", items: slide.swot.opportunities },
+              { key: "threats", label: "Threats", color: "#f59e0b", items: slide.swot.threats },
+            ] as const).map((quadrant) => (
+              <div key={quadrant.key} style={{ padding: 16, borderRadius: 12, background: `${quadrant.color}06`, border: `1px solid ${quadrant.color}15` }}>
+                <div style={{ fontSize: theme.captionSize, fontWeight: 700, color: quadrant.color, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 10 }}>
+                  {quadrant.label}
+                </div>
+                {quadrant.items.slice(0, 4).map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6, fontSize: "0.8rem", color: theme.textColor, lineHeight: 1.4 }}>
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: quadrant.color, marginTop: 6, flexShrink: 0, opacity: 0.6 }} />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* OKR DASHBOARD */}
+      {slide.layout === "okr" && slide.okrs && (
+        <>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+            {slide.title}
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%" }}>
+            {slide.okrs.slice(0, 3).map((okr, oi) => (
+              <div key={oi} style={{ padding: 16, borderRadius: 12, background: `${theme.accentColor}04`, border: `1px solid ${theme.accentColor}10` }}>
+                <div style={{ fontSize: theme.captionSize, fontWeight: 700, color: theme.titleColor, marginBottom: 12 }}>
+                  {okr.objective}
+                </div>
+                {okr.keyResults.slice(0, 4).map((kr, ki) => (
+                  <div key={ki} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontSize: "0.78rem", color: theme.textColor }}>{kr.result}</span>
+                      <span style={{ fontSize: "0.78rem", fontWeight: 600, color: theme.accentColor }}>{kr.progress}% → {kr.target}</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 3, background: `${theme.accentColor}12`, overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%", borderRadius: 3, background: theme.accentGradient,
+                        width: `${Math.min(kr.progress, 100)}%`, transition: "width 1s ease-out",
+                      }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Slide number — subtle */}
       <div
         style={{

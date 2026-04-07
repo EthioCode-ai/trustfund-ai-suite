@@ -184,6 +184,13 @@ When asked to create a presentation, pitch deck, or slides, output a structured 
     {"layout": "image", "title": "Vision", "imagePrompt": "futuristic AI dashboard", "bullets": ["Key point"]},
     {"layout": "quote", "title": "What customers say about us", "subtitle": "— Customer Name, CEO"},
     {"layout": "team", "title": "Our Team", "bullets": ["Name — Role — Background"]},
+    {"layout": "stats", "title": "Key Metrics", "stats": [{"value": "$45B", "label": "Total Addressable Market", "context": "Healthcare AI alone"}, {"value": "95%", "label": "Detection Accuracy", "context": "Across all modalities"}, {"value": "4", "label": "Live Products", "context": "With 3 more planned"}]},
+    {"layout": "timeline", "title": "Product Roadmap", "timeline": [{"date": "Q1 2026", "title": "Cancer Detection", "status": "done"}, {"date": "Q2 2026", "title": "MCAT Prep Launch", "status": "active"}, {"date": "Q4 2026", "title": "RetailOptimizer", "status": "upcoming"}]},
+    {"layout": "comparison", "title": "Competitive Edge", "comparison": {"features": ["Multi-vertical AI", "Blockchain transparency", "Clinical workflows"], "columns": [{"name": "Neuromart.ai", "highlight": true, "values": ["✓", "✓", "✓"]}, {"name": "Competitor A", "values": ["✗", "✗", "Partial"]}]}},
+    {"layout": "process", "title": "How It Works", "process": [{"step": 1, "title": "Upload Data", "description": "Medical images or student info"}, {"step": 2, "title": "AI Analysis", "description": "Models process in seconds"}, {"step": 3, "title": "Expert Review", "description": "Human-in-the-loop validation"}, {"step": 4, "title": "Actionable Output", "description": "Reports, predictions, plans"}]},
+    {"layout": "icon-grid", "title": "Platform Capabilities", "iconGrid": [{"icon": "🏥", "title": "Cancer Detection", "description": "4 modalities, HIPAA-compliant"}, {"icon": "🎓", "title": "MCAT Prep", "description": "Adaptive AI learning"}, {"icon": "💝", "title": "Fundraising", "description": "Blockchain-transparent"}]},
+    {"layout": "swot", "title": "Strategic Position", "swot": {"strengths": ["Multi-vertical platform moat", "Live clinical AI product"], "weaknesses": ["Early-stage revenue", "Small team"], "opportunities": ["$45B healthcare AI market", "Blockchain fundraising gap"], "threats": ["Big tech entering space", "Regulatory changes"]}},
+    {"layout": "okr", "title": "Q2 Objectives", "okrs": [{"objective": "Reach 50 hospital partnerships", "keyResults": [{"result": "Signed hospital contracts", "progress": 40, "target": "50"}, {"result": "Active users on platform", "progress": 65, "target": "200"}]}]},
     {"layout": "closing", "title": "Let's Build Together", "subtitle": "contact@neuromart.ai", "bullets": ["Schedule a Demo"]}
   ]
 }
@@ -195,7 +202,8 @@ Deck rules:
 - Include at least 2-3 chart slides with realistic data — EVERY chartData MUST include "unit"
 - Include at least 1 image slide with a descriptive imagePrompt
 - Available themes: investor (clean/professional), corporate (formal), modern (sleek), bold (dark/energetic)
-- Available layouts: title, content, two-column, chart, image, quote, team, closing
+- Available layouts: title, content, two-column, chart, image, quote, team, stats, timeline, comparison, process, icon-grid, swot, okr, closing
+- USE INFOGRAPHIC LAYOUTS LIBERALLY: stats for key metrics, timeline for roadmaps, comparison for competitive analysis, process for how-it-works, icon-grid for features, swot for strategic analysis, okr for objectives
 - Reference real Neuromart.ai verticals with actual product details
 - MAX 6 BULLETS PER SLIDE, MAX 6 WORDS PER BULLET — this is strictly enforced by the renderer
 - ONE IDEA PER SLIDE — if you have two ideas, make two slides

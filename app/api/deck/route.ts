@@ -66,8 +66,9 @@ The JSON must follow this exact structure:
   ]
 }
 
-Available layouts: title, content, two-column, chart, image, quote, team, closing
+Available layouts: title, content, two-column, chart, image, quote, team, stats, timeline, comparison, process, icon-grid, swot, okr, closing
 Available chart types: bar, line, pie, funnel, metric
+USE infographic layouts generously: stats for hero metrics, timeline for roadmaps, comparison for competitive tables, process for how-it-works flows, icon-grid for feature overviews, swot for strategic analysis, okr for objectives tracking
 Available themes: investor (clean/professional), corporate (formal), modern (sleek), bold (dark/energetic)
 
 Rules:

@@ -1,3 +1,46 @@
+export interface StatItem {
+  value: string;
+  label: string;
+  context?: string;
+}
+
+export interface TimelineItem {
+  date: string;
+  title: string;
+  description?: string;
+  status?: "done" | "active" | "upcoming";
+}
+
+export interface ComparisonColumn {
+  name: string;
+  highlight?: boolean;
+  values: string[];
+}
+
+export interface ProcessStep {
+  step: number;
+  title: string;
+  description?: string;
+}
+
+export interface IconGridItem {
+  icon: string;
+  title: string;
+  description?: string;
+}
+
+export interface SWOTData {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+}
+
+export interface OKRData {
+  objective: string;
+  keyResults: { result: string; progress: number; target: string }[];
+}
+
 export interface SlideContent {
   title: string;
   subtitle?: string;
@@ -6,7 +49,18 @@ export interface SlideContent {
   imagePrompt?: string;
   imageUrl?: string;
   chartData?: ChartData;
-  layout: "title" | "content" | "two-column" | "chart" | "image" | "quote" | "team" | "closing";
+  stats?: StatItem[];
+  timeline?: TimelineItem[];
+  comparison?: { features: string[]; columns: ComparisonColumn[] };
+  process?: ProcessStep[];
+  iconGrid?: IconGridItem[];
+  swot?: SWOTData;
+  okrs?: OKRData[];
+  layout:
+    | "title" | "content" | "two-column" | "chart" | "image"
+    | "quote" | "team" | "closing"
+    | "stats" | "timeline" | "comparison" | "process" | "icon-grid"
+    | "swot" | "okr";
 }
 
 export interface DeckData {
