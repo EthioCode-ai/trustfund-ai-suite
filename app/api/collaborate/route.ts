@@ -90,6 +90,30 @@ export async function POST(req: NextRequest) {
       }
 
       try {
+        // PHASE 0: Research
+        send("status", { phase: "research", message: "Researching topic with multiple sources..." });
+        let researchContext = "";
+        try {
+          const researchRes = await fetch(new URL("/api/research", req.url).toString(), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ queries: [
+              `${userMessage} market data statistics 2024 2025`,
+              `${userMessage} competitive landscape analysis`,
+            ]}),
+          });
+          const researchJson = await researchRes.json();
+          if (researchJson.results) {
+            researchContext = "\n\n## VERIFIED RESEARCH DATA:\n" + researchJson.results
+              .map((r: { topic: string; findings: string; confidence: string }) => `${r.findings}\n(Confidence: ${r.confidence})`)
+              .join("\n\n");
+            send("status", { phase: "research_done", message: "Research validated. Planning delegation..." });
+          }
+        } catch {
+          researchContext = "";
+          send("status", { phase: "research_done", message: "Proceeding with internal knowledge..." });
+        }
+
         send("status", { phase: "planning", message: "CEO is analyzing your request..." });
 
         const anthropic = getAnthropicClient();
@@ -177,17 +201,23 @@ export async function POST(req: NextRequest) {
           .filter(Boolean)
           .join("\n\n");
 
-        const synthesisPrompt = `You asked your C-suite team for input. Here are their responses:
+        const synthesisPrompt = `You asked your C-suite team for input and conducted independent research. Here is everything:
+${researchContext}
 
+## EXECUTIVE INPUTS:
 ${executiveInputs || "No executive input was gathered — produce your best deliverable independently."}
 
-Now synthesize ALL of this into a single, comprehensive, polished deliverable that directly answers the founder's original request. Incorporate the specific data, numbers, and insights from each executive — don't just summarize them, WEAVE them into a cohesive response.
+Now synthesize ALL of this into a single, comprehensive, polished deliverable that directly answers the founder's original request.
 
-If the founder asked for a pitch deck, create a full \`\`\`deck block with the executives' data integrated into the slides (financial projections from CFO in chart slides, GTM from CMO in content slides, ops timeline from COO, competitive landscape from CSO, etc.).
+CRITICAL RULES:
+1. Every claim must be grounded in the research data or explicitly marked as an assumption
+2. Incorporate specific data, numbers, and insights from each executive — WEAVE them in, don't summarize
+3. Where executives had different perspectives, state the consensus position
+4. Include a "Sources & Methodology" note at the end listing what was researched
+5. If this is a deck, use infographic layouts (stats, timeline, comparison, process, icon-grid, swot) — not just text slides
+6. If this is analysis, produce structured markdown with charts
 
-If they asked for analysis or strategy, produce a unified document with data from all executives.
-
-IMPORTANT: This is a FINAL deliverable for the founder. Make it comprehensive, polished, and actionable.`;
+This goes directly to Dr. Abiy Selassie. Make it immaculate.`;
 
         const ceoAgent = agents.ceo;
         const synthesisStream = await anthropic.messages.stream({

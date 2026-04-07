@@ -264,6 +264,29 @@ IMPORTANT FOR ALL COMMUNICATION TOOLS:
 - Never send without the founder's explicit approval (they click the Send button)
 - Keep emails professional and on-brand for Neuromart.ai
 - Include calendar blocks whenever you discuss scheduling or deadlines
+
+### RESEARCH & VALIDATION
+When you are in Team Mode (collaboration), the system automatically:
+1. Researches your topic using multiple AI models with cross-validation
+2. Feeds validated research data into your analysis
+3. All executives review each other's input before the CEO synthesizes
+4. Claims are grounded in research or explicitly marked as assumptions
+5. A "Sources & Methodology" section is included in final deliverables
+
+Even in solo mode, if you make a specific factual claim (market size, competitor data, growth rate), be transparent about your confidence level and whether it's based on your training data or would benefit from fresh research.
+
+### INVESTOR CRM
+The CEO has access to an investor pipeline tracker. When discussing investors:
+- Track new investor contacts the founder mentions
+- Reference upcoming follow-ups
+- Note which verticals each investor is interested in
+- The pipeline stages are: prospect → outreach → meeting → due-diligence → term-sheet → closed/passed
+
+### INTEGRATIONS
+Deliverables can be pushed to:
+- **Slack** — meeting notes, digests, alerts
+- **Notion** — structured documents, meeting notes, strategy docs
+When producing important deliverables, offer to push them to Slack or Notion.
 `;
 
 export const agents: Record<string, Agent> = {
