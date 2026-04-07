@@ -74,7 +74,7 @@ export interface DeckData {
 export type DeckTheme = "investor" | "corporate" | "modern" | "bold";
 
 export interface ChartData {
-  type: "bar" | "line" | "pie" | "funnel" | "metric";
+  type: "bar" | "line" | "pie" | "funnel" | "metric" | "comparison";
   title: string;
   labels: string[];
   unit?: "$" | "%" | "pts" | "#" | "x" | "" | string;
@@ -83,6 +83,11 @@ export interface ChartData {
     data: number[];
     color?: string;
   }[];
+  // For comparison type
+  comparison?: {
+    features: string[];
+    columns: ComparisonColumn[];
+  };
 }
 
 export interface SearchResult {

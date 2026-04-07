@@ -299,6 +299,69 @@ function RechartFunnel({ data, colors, unit }: { data: ChartData; colors: string
   );
 }
 
+function ComparisonTable({ data, colors }: { data: ChartData; colors: string[] }) {
+  const comp = data.comparison;
+  if (!comp) return null;
+
+  return (
+    <div style={{ width: "100%", overflow: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, fontSize: "0.88rem" }}>
+        <thead>
+          <tr>
+            <th style={{
+              padding: "14px 18px", textAlign: "left", color: "#64748b", fontWeight: 500,
+              borderBottom: "2px solid #e2e8f0", background: "#f8fafc",
+              borderRadius: "10px 0 0 0",
+            }}>
+              Feature
+            </th>
+            {comp.columns.map((col, i) => (
+              <th key={i} style={{
+                padding: "14px 18px", textAlign: "center", fontWeight: 700,
+                color: col.highlight ? colors[0] : "#0f172a",
+                borderBottom: `2px solid ${col.highlight ? colors[0] : "#e2e8f0"}`,
+                background: col.highlight ? `${colors[0]}08` : "#f8fafc",
+                borderRadius: i === comp.columns.length - 1 ? "0 10px 0 0" : undefined,
+              }}>
+                {col.name}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {comp.features.map((feat, fi) => (
+            <tr key={fi}>
+              <td style={{
+                padding: "12px 18px", color: "#334155", fontWeight: 500,
+                borderBottom: fi === comp.features.length - 1 ? "none" : "1px solid #f1f5f9",
+              }}>
+                {feat}
+              </td>
+              {comp.columns.map((col, ci) => {
+                const val = col.values[fi] || "—";
+                const isPositive = val.includes("✓") || val.includes("✔") || val.toLowerCase().includes("yes");
+                const isNegative = val.includes("✗") || val.includes("✘") || val.toLowerCase() === "x" || val.toLowerCase() === "none";
+                return (
+                  <td key={ci} style={{
+                    padding: "12px 18px", textAlign: "center",
+                    color: isPositive ? "#10b981" : isNegative ? "#ef4444" : "#475569",
+                    fontWeight: isPositive || isNegative ? 600 : 400,
+                    borderBottom: fi === comp.features.length - 1 ? "none" : "1px solid #f1f5f9",
+                    background: col.highlight ? `${colors[0]}04` : "transparent",
+                    fontSize: isPositive || isNegative ? "0.95rem" : undefined,
+                  }}>
+                    {val}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function Chart({ data, colors }: { data: ChartData; colors?: string[] }) {
   const c = colors || ["#6366f1", "#818cf8", "#a5b4fc", "#10b981", "#f59e0b", "#ef4444"];
   const unit = data.unit;
@@ -315,6 +378,7 @@ export function Chart({ data, colors }: { data: ChartData; colors?: string[] }) 
       {data.type === "pie" && <RechartPie data={data} colors={c} unit={unit} />}
       {data.type === "metric" && <MetricCards data={data} colors={c} unit={unit} />}
       {data.type === "funnel" && <RechartFunnel data={data} colors={c} unit={unit} />}
+      {data.type === "comparison" && <ComparisonTable data={data} colors={c} />}
     </div>
   );
 }
