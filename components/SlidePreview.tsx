@@ -1,10 +1,36 @@
 "use client";
 
 import { DeckData } from "@/lib/tools";
-import { themes, ThemeConfig } from "@/lib/deck-themes";
+import { themes, ThemeConfig, shouldUseDarkBg } from "@/lib/deck-themes";
 import { Chart } from "./Chart";
 import { Presentation, Download, ExternalLink } from "lucide-react";
 import { useState } from "react";
+
+function ProgressRing({ value, size = 100, color = "#6366f1", label }: { value: number; size?: number; color?: string; label?: string }) {
+  const strokeWidth = size * 0.1;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (Math.min(value, 100) / 100) * circumference;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size / 2} cy={size / 2} r={radius} stroke="rgba(255,255,255,0.15)" strokeWidth={strokeWidth} fill="none" />
+        <circle
+          cx={size / 2} cy={size / 2} r={radius}
+          stroke={color} strokeWidth={strokeWidth} fill="none"
+          strokeDasharray={circumference} strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 1s ease-out" }}
+        />
+      </svg>
+      <div style={{ position: "relative", marginTop: -size * 0.65, fontSize: size * 0.28, fontWeight: 800, color: "#fff", textAlign: "center" }}>
+        {value}%
+      </div>
+      {label && <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)", marginTop: size * 0.15, textAlign: "center", fontWeight: 500 }}>{label}</div>}
+    </div>
+  );
+}
 
 function Slide({
   slide,
@@ -17,13 +43,20 @@ function Slide({
   index: number;
   total: number;
 }) {
-  // Max 6 bullets, enforce 6x6 rule at render level
   const bullets = slide.bullets?.slice(0, 6) || [];
+  const isDark = shouldUseDarkBg(slide.layout, index);
+
+  // Dynamic colors based on dark/light mode
+  const bg = isDark ? theme.darkBg : theme.bgSlide;
+  const heading = isDark ? theme.darkText : theme.titleColor;
+  const text = isDark ? theme.darkMuted : theme.textColor;
+  const accent = isDark ? theme.darkAccent : theme.accentColor;
+  const muted = isDark ? `${theme.darkMuted}80` : theme.mutedColor;
 
   return (
     <div
       style={{
-        background: theme.bgSlide,
+        background: bg,
         borderRadius: theme.borderRadius,
         padding: theme.slidePadding,
         minHeight: 420,
@@ -42,14 +75,14 @@ function Slide({
             ? "center"
             : "left",
         position: "relative",
-        border: `1px solid ${theme.accentColor}10`,
-        boxShadow: "0 2px 16px rgba(0,0,0,0.04)",
+        border: isDark ? "none" : `1px solid ${theme.accentColor}10`,
+        boxShadow: isDark ? "0 8px 32px rgba(0,0,0,0.25)" : "0 2px 16px rgba(0,0,0,0.04)",
         overflow: "hidden",
         fontFamily: theme.fontFamily,
       }}
     >
-      {/* Subtle accent bar for non-title slides */}
-      {slide.layout !== "title" && slide.layout !== "closing" && (
+      {/* Subtle accent bar for light non-title slides */}
+      {!isDark && slide.layout !== "title" && slide.layout !== "closing" && (
         <div
           style={{
             position: "absolute",
@@ -62,14 +95,14 @@ function Slide({
         />
       )}
 
-      {/* TITLE SLIDE */}
+      {/* TITLE SLIDE — always dark/gradient background */}
       {slide.layout === "title" && (
         <div style={{ maxWidth: 640 }}>
           <div
             style={{
               width: 60,
               height: 3,
-              background: theme.accentGradient,
+              background: "rgba(255,255,255,0.4)",
               borderRadius: 2,
               margin: "0 auto 40px",
             }}
@@ -78,7 +111,7 @@ function Slide({
             style={{
               fontSize: theme.titleSize,
               fontWeight: theme.headingWeight,
-              color: theme.titleColor,
+              color: heading,
               letterSpacing: "-0.03em",
               lineHeight: 1.15,
               marginBottom: 20,
@@ -87,7 +120,7 @@ function Slide({
             {slide.title}
           </h2>
           {slide.subtitle && (
-            <p style={{ fontSize: theme.bodySize, color: theme.accentColor, fontWeight: 500, lineHeight: 1.5 }}>
+            <p style={{ fontSize: theme.bodySize, color: accent, fontWeight: 500, lineHeight: 1.5 }}>
               {slide.subtitle}
             </p>
           )}
@@ -101,7 +134,7 @@ function Slide({
             style={{
               fontSize: theme.headingSize,
               fontWeight: theme.headingWeight,
-              color: theme.titleColor,
+              color: heading,
               marginBottom: theme.contentGap,
               letterSpacing: "-0.02em",
               lineHeight: 1.2,
@@ -119,7 +152,7 @@ function Slide({
                   gap: 16,
                   marginBottom: theme.bulletGap,
                   fontSize: theme.bulletSize,
-                  color: theme.textColor,
+                  color: text,
                   lineHeight: 1.6,
                   fontWeight: theme.bodyWeight,
                 }}
@@ -129,7 +162,7 @@ function Slide({
                     width: 8,
                     height: 8,
                     borderRadius: "50%",
-                    background: theme.accentColor,
+                    background: accent,
                     marginTop: 8,
                     flexShrink: 0,
                     opacity: 0.8,
@@ -358,14 +391,14 @@ function Slide({
         );
       })()}
 
-      {/* CLOSING */}
+      {/* CLOSING — always dark/gradient */}
       {slide.layout === "closing" && (
         <div style={{ maxWidth: 560 }}>
           <h2
             style={{
               fontSize: theme.titleSize,
               fontWeight: theme.headingWeight,
-              color: theme.titleColor,
+              color: heading,
               marginBottom: 16,
               letterSpacing: "-0.02em",
             }}
@@ -373,7 +406,7 @@ function Slide({
             {slide.title}
           </h2>
           {slide.subtitle && (
-            <p style={{ fontSize: theme.bodySize, color: theme.mutedColor, marginBottom: 28 }}>
+            <p style={{ fontSize: theme.bodySize, color: muted, marginBottom: 28 }}>
               {slide.subtitle}
             </p>
           )}
@@ -383,12 +416,14 @@ function Slide({
               style={{
                 display: "inline-block",
                 padding: "14px 32px",
-                background: theme.accentGradient,
+                background: "rgba(255,255,255,0.15)",
                 color: "#fff",
                 borderRadius: 10,
                 fontWeight: 600,
                 fontSize: theme.bodySize,
                 marginTop: 8,
+                border: "1px solid rgba(255,255,255,0.2)",
+                backdropFilter: "blur(4px)",
               }}
             >
               {b}
@@ -397,28 +432,47 @@ function Slide({
         </div>
       )}
 
-      {/* STATS */}
+      {/* STATS — always dark bg with bold cards */}
       {slide.layout === "stats" && slide.stats && (
         <>
-          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: theme.titleColor, marginBottom: theme.contentGap, width: "100%" }}>
+          <h3 style={{ fontSize: theme.headingSize, fontWeight: theme.headingWeight, color: heading, marginBottom: theme.contentGap, width: "100%" }}>
             {slide.title}
           </h3>
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(slide.stats.length, 3)}, 1fr)`, gap: 28, width: "100%" }}>
-            {slide.stats.slice(0, 4).map((stat, i) => (
-              <div key={i} style={{ textAlign: "center", padding: "24px 16px" }}>
-                <div style={{ fontSize: "2.4rem", fontWeight: 800, color: theme.accentColor, letterSpacing: "-0.03em", lineHeight: 1 }}>
-                  {stat.value}
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(slide.stats.length, 3)}, 1fr)`, gap: 24, width: "100%" }}>
+            {slide.stats.slice(0, 4).map((stat, i) => {
+              // Check if value looks like a percentage for progress ring
+              const numMatch = stat.value.match(/^(\d+)%$/);
+              const isPercent = !!numMatch;
+
+              return (
+                <div key={i} style={{
+                  textAlign: "center",
+                  padding: "28px 20px",
+                  background: "rgba(255,255,255,0.08)",
+                  borderRadius: 16,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(8px)",
+                }}>
+                  {isPercent ? (
+                    <ProgressRing value={parseInt(numMatch![1])} size={90} color={accent} label={stat.label} />
+                  ) : (
+                    <>
+                      <div style={{ fontSize: "2.4rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>
+                        {stat.value}
+                      </div>
+                      <div style={{ fontSize: theme.bodySize, fontWeight: 600, color: "rgba(255,255,255,0.9)", marginTop: 12 }}>
+                        {stat.label}
+                      </div>
+                    </>
+                  )}
+                  {stat.context && !isPercent && (
+                    <div style={{ fontSize: theme.captionSize, color: "rgba(255,255,255,0.5)", marginTop: 6, lineHeight: 1.4 }}>
+                      {stat.context}
+                    </div>
+                  )}
                 </div>
-                <div style={{ fontSize: theme.bodySize, fontWeight: 600, color: theme.titleColor, marginTop: 12 }}>
-                  {stat.label}
-                </div>
-                {stat.context && (
-                  <div style={{ fontSize: theme.captionSize, color: theme.mutedColor, marginTop: 6, lineHeight: 1.4 }}>
-                    {stat.context}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
@@ -628,7 +682,7 @@ function Slide({
           bottom: 16,
           right: 20,
           fontSize: "0.7rem",
-          color: theme.mutedColor,
+          color: isDark ? "rgba(255,255,255,0.3)" : theme.mutedColor,
           opacity: 0.5,
         }}
       >

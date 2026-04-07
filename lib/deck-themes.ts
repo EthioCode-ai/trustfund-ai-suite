@@ -1,7 +1,7 @@
 export interface ThemeConfig {
   name: string;
   description: string;
-  // Colors — limited palette: bg, primary, accent (max 3)
+  // Light mode
   bg: string;
   bgSlide: string;
   titleColor: string;
@@ -9,18 +9,21 @@ export interface ThemeConfig {
   accentColor: string;
   accentGradient: string;
   mutedColor: string;
-  // Typography — 2 fonts max, strict sizing
+  // Dark/accent slide variants
+  darkBg: string;
+  darkText: string;
+  darkMuted: string;
+  darkAccent: string;
+  // Typography
   fontFamily: string;
   headingWeight: number;
   bodyWeight: number;
-  // Title slide: 48px+ heading
   titleSize: string;
-  // Content slide: 32px heading, 24px body
   headingSize: string;
   bodySize: string;
   bulletSize: string;
   captionSize: string;
-  // Spacing — generous whitespace
+  // Spacing
   slidePadding: string;
   contentGap: string;
   bulletGap: string;
@@ -28,6 +31,19 @@ export interface ThemeConfig {
   borderRadius: number;
   // Charts
   chartColors: string[];
+}
+
+// Which slide types get dark/gradient backgrounds
+export function shouldUseDarkBg(layout: string, index: number): boolean {
+  // Title and closing always dark
+  if (layout === "title" || layout === "closing") return true;
+  // Stats and metric slides look great on dark
+  if (layout === "stats" || layout === "okr") return true;
+  // Alternate: every other content-heavy slide
+  if (layout === "content" || layout === "two-column" || layout === "icon-grid") {
+    return index % 3 === 2; // Every 3rd slide
+  }
+  return false;
 }
 
 export const themes: Record<string, ThemeConfig> = {
@@ -39,8 +55,12 @@ export const themes: Record<string, ThemeConfig> = {
     titleColor: "#0f172a",
     textColor: "#475569",
     accentColor: "#6366f1",
-    accentGradient: "linear-gradient(135deg, #6366f1, #818cf8)",
+    accentGradient: "linear-gradient(135deg, #4f46e5, #7c3aed)",
     mutedColor: "#94a3b8",
+    darkBg: "linear-gradient(135deg, #1e1b4b, #312e81)",
+    darkText: "#e2e8f0",
+    darkMuted: "#a5b4fc",
+    darkAccent: "#a5b4fc",
     fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
     headingWeight: 700,
     bodyWeight: 400,
@@ -65,6 +85,10 @@ export const themes: Record<string, ThemeConfig> = {
     accentColor: "#2563eb",
     accentGradient: "linear-gradient(135deg, #1e40af, #3b82f6)",
     mutedColor: "#94a3b8",
+    darkBg: "linear-gradient(135deg, #0f172a, #1e3a5f)",
+    darkText: "#e2e8f0",
+    darkMuted: "#93c5fd",
+    darkAccent: "#60a5fa",
     fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
     headingWeight: 700,
     bodyWeight: 400,
@@ -89,6 +113,10 @@ export const themes: Record<string, ThemeConfig> = {
     accentColor: "#7c3aed",
     accentGradient: "linear-gradient(135deg, #7c3aed, #a78bfa)",
     mutedColor: "#a1a1aa",
+    darkBg: "linear-gradient(135deg, #2e1065, #4c1d95)",
+    darkText: "#ede9fe",
+    darkMuted: "#c4b5fd",
+    darkAccent: "#c4b5fd",
     fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
     headingWeight: 800,
     bodyWeight: 400,
@@ -113,6 +141,10 @@ export const themes: Record<string, ThemeConfig> = {
     accentColor: "#38bdf8",
     accentGradient: "linear-gradient(135deg, #0ea5e9, #38bdf8)",
     mutedColor: "#64748b",
+    darkBg: "linear-gradient(135deg, #0c4a6e, #075985)",
+    darkText: "#e0f2fe",
+    darkMuted: "#7dd3fc",
+    darkAccent: "#7dd3fc",
     fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
     headingWeight: 800,
     bodyWeight: 400,
