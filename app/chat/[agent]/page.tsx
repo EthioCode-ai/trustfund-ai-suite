@@ -1,11 +1,25 @@
 "use client";
 
 import { useState, useRef, useEffect, use } from "react";
-import { getAgent } from "@/lib/agents";
-import { ChatMessage as ChatMessageType } from "@/lib/types";
+import { getAgent, agents as allAgents } from "@/lib/agents";
+import { ChatMessage as ChatMessageType, AgentRole } from "@/lib/types";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { ExportButton } from "@/components/ExportButton";
+import { Crown, DollarSign, Settings, Megaphone, Users } from "lucide-react";
+
+const agentIcons: Record<string, React.ComponentType<{ size?: number }>> = {
+  Crown,
+  DollarSign,
+  Settings,
+  Megaphone,
+};
+
+interface CollabStatus {
+  phase: string;
+  agent?: AgentRole;
+  message: string;
+}
 
 export default function AgentChat({
   params,
@@ -16,11 +30,13 @@ export default function AgentChat({
   const agent = getAgent(agentId);
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [collabMode, setCollabMode] = useState(false);
+  const [collabStatuses, setCollabStatuses] = useState<CollabStatus[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, collabStatuses]);
 
   if (!agent) {
     return (
@@ -29,6 +45,8 @@ export default function AgentChat({
       </div>
     );
   }
+
+  const isCEO = agent.id === "ceo";
 
   const handleSend = async (content: string) => {
     const userMessage: ChatMessageType = {
@@ -48,7 +66,20 @@ export default function AgentChat({
 
     setMessages((prev) => [...prev, userMessage, assistantMessage]);
     setIsStreaming(true);
+    setCollabStatuses([]);
 
+    // CEO uses collaboration mode
+    if (isCEO && collabMode) {
+      await handleCollabSend(content, userMessage);
+    } else {
+      await handleDirectSend(content, userMessage);
+    }
+  };
+
+  const handleDirectSend = async (
+    content: string,
+    userMessage: ChatMessageType
+  ) => {
     try {
       const apiMessages = [...messages, userMessage].map((m) => ({
         role: m.role,
@@ -61,9 +92,39 @@ export default function AgentChat({
         body: JSON.stringify({ agentId: agent.id, messages: apiMessages }),
       });
 
+      await processSSEStream(response);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setErrorMessage();
+    } finally {
+      setIsStreaming(false);
+    }
+  };
+
+  const handleCollabSend = async (
+    content: string,
+    userMessage: ChatMessageType
+  ) => {
+    try {
+      const conversationHistory = messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const response = await fetch("/api/collaborate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            ...conversationHistory,
+            { role: "user", content },
+          ],
+          conversationHistory,
+        }),
+      });
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-
       if (!reader) throw new Error("No response stream");
 
       let buffer = "";
@@ -78,49 +139,105 @@ export default function AgentChat({
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const data = line.slice(6);
-          if (data === "[DONE]") break;
 
           try {
             const parsed = JSON.parse(data);
-            if (parsed.error) {
+
+            if (parsed.event === "status") {
+              setCollabStatuses((prev) => [...prev, parsed.data as CollabStatus]);
+            } else if (parsed.event === "text") {
               setMessages((prev) => {
                 const updated = [...prev];
                 updated[updated.length - 1] = {
                   ...updated[updated.length - 1],
-                  content: `Error: ${parsed.error}`,
+                  content: updated[updated.length - 1].content + parsed.data,
                 };
                 return updated;
               });
+            } else if (parsed.event === "error") {
+              setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = {
+                  ...updated[updated.length - 1],
+                  content: `Error: ${parsed.data}`,
+                };
+                return updated;
+              });
+            } else if (parsed.event === "done") {
               break;
             }
-            if (parsed.text) {
-              setMessages((prev) => {
-                const updated = [...prev];
-                updated[updated.length - 1] = {
-                  ...updated[updated.length - 1],
-                  content: updated[updated.length - 1].content + parsed.text,
-                };
-                return updated;
-              });
-            }
           } catch {
-            // skip malformed chunks
+            // skip malformed
           }
         }
       }
     } catch (error) {
-      console.error("Chat error:", error);
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...updated[updated.length - 1],
-          content: "Sorry, I encountered an error. Please check your API keys and try again.",
-        };
-        return updated;
-      });
+      console.error("Collab error:", error);
+      setErrorMessage();
     } finally {
       setIsStreaming(false);
     }
+  };
+
+  const processSSEStream = async (response: Response) => {
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    if (!reader) throw new Error("No response stream");
+
+    let buffer = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6);
+        if (data === "[DONE]") break;
+
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.error) {
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                content: `Error: ${parsed.error}`,
+              };
+              return updated;
+            });
+            break;
+          }
+          if (parsed.text) {
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...updated[updated.length - 1],
+                content: updated[updated.length - 1].content + parsed.text,
+              };
+              return updated;
+            });
+          }
+        } catch {
+          // skip
+        }
+      }
+    }
+  };
+
+  const setErrorMessage = () => {
+    setMessages((prev) => {
+      const updated = [...prev];
+      updated[updated.length - 1] = {
+        ...updated[updated.length - 1],
+        content:
+          "Sorry, I encountered an error. Please check your API keys and try again.",
+      };
+      return updated;
+    });
   };
 
   return (
@@ -162,18 +279,46 @@ export default function AgentChat({
           <h2 style={{ fontSize: "1rem", fontWeight: 600 }}>{agent.name}</h2>
           <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
             {agent.title} — {agent.provider === "anthropic" ? "Claude" : "GPT-4o"}
+            {isCEO && collabMode && " — Collaboration Mode"}
           </p>
         </div>
-        {messages.length > 0 && (
-          <ExportButton
-            content={messages
-              .filter((m) => m.role === "assistant")
-              .map((m) => m.content)
-              .join("\n\n---\n\n")}
-            filename={`trustfund-${agent.id}-report`}
-            label="Export Chat"
-          />
-        )}
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {/* Collaboration toggle for CEO */}
+          {isCEO && (
+            <button
+              onClick={() => setCollabMode(!collabMode)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: collabMode
+                  ? "1px solid #6366f1"
+                  : "1px solid var(--border)",
+                background: collabMode ? "#6366f120" : "var(--bg-tertiary)",
+                color: collabMode ? "#6366f1" : "var(--text-secondary)",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              <Users size={14} />
+              {collabMode ? "Team Mode ON" : "Team Mode"}
+            </button>
+          )}
+          {messages.length > 0 && (
+            <ExportButton
+              content={messages
+                .filter((m) => m.role === "assistant")
+                .map((m) => m.content)
+                .join("\n\n---\n\n")}
+              filename={`trustfund-${agent.id}-report`}
+              label="Export Chat"
+            />
+          )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -207,13 +352,70 @@ export default function AgentChat({
                 style={{ background: agent.color, width: 16, height: 16 }}
               />
             </div>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: 500, color: "var(--text-primary)" }}>
+            <h3
+              style={{
+                fontSize: "1.1rem",
+                fontWeight: 500,
+                color: "var(--text-primary)",
+              }}
+            >
               Chat with {agent.name}
             </h3>
             <p style={{ maxWidth: 400, textAlign: "center", fontSize: "0.9rem" }}>
               {agent.description}
             </p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 500, marginTop: 8 }}>
+
+            {/* Collab mode info for CEO */}
+            {isCEO && (
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: "12px 20px",
+                  background: collabMode ? "#6366f110" : "var(--bg-tertiary)",
+                  border: `1px solid ${collabMode ? "#6366f130" : "var(--border)"}`,
+                  borderRadius: 12,
+                  maxWidth: 500,
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  <Users size={14} style={{ color: "#6366f1" }} />
+                  <span
+                    style={{
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      color: "#6366f1",
+                    }}
+                  >
+                    Team Mode {collabMode ? "Active" : "Available"}
+                  </span>
+                </div>
+                <p style={{ fontSize: "0.78rem", lineHeight: 1.5 }}>
+                  {collabMode
+                    ? "Alexandria will automatically consult the CFO, COO, and CMO, then synthesize their input into one unified deliverable."
+                    : "Enable Team Mode to have the CEO orchestrate the full C-suite for comprehensive deliverables."}
+                </p>
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                justifyContent: "center",
+                maxWidth: 500,
+                marginTop: 8,
+              }}
+            >
               {agent.capabilities.map((cap) => (
                 <span
                   key={cap}
@@ -236,15 +438,87 @@ export default function AgentChat({
           <ChatMessage key={msg.id} message={msg} />
         ))}
 
-        {isStreaming && messages[messages.length - 1]?.content === "" && (
+        {/* Collaboration status indicators */}
+        {isStreaming && collabMode && collabStatuses.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+              padding: "8px 0 8px 48px",
+              marginBottom: 12,
+            }}
+          >
+            {collabStatuses.map((status, i) => {
+              const agentData = status.agent
+                ? allAgents[status.agent]
+                : null;
+              const isReceived = status.phase === "received";
+              const isConsulting = status.phase === "consulting";
+              const Icon = agentData
+                ? agentIcons[agentData.icon] || Crown
+                : Users;
+              const color = agentData?.color || "#6366f1";
+
+              return (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "8px 14px",
+                    background: isReceived
+                      ? `${color}08`
+                      : `${color}12`,
+                    border: `1px solid ${color}${isReceived ? "15" : "25"}`,
+                    borderRadius: 10,
+                    fontSize: "0.8rem",
+                    color: isReceived
+                      ? "var(--text-secondary)"
+                      : color,
+                    fontWeight: 500,
+                    width: "fit-content",
+                    transition: "all 0.3s",
+                  }}
+                >
+                  {isConsulting && (
+                    <div style={{ animation: "pulse 1.5s infinite" }}>
+                      <Icon size={14} />
+                    </div>
+                  )}
+                  {isReceived && (
+                    <span style={{ color: "#10b981" }}>✓</span>
+                  )}
+                  {!isConsulting && !isReceived && (
+                    <Icon size={14} />
+                  )}
+                  {status.message}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {isStreaming && messages[messages.length - 1]?.content === "" && collabStatuses.length === 0 && (
           <div className="typing-indicator" style={{ paddingLeft: 48 }}>
-            <span /><span /><span />
+            <span />
+            <span />
+            <span />
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <ChatInput onSend={handleSend} disabled={isStreaming} />
+      <ChatInput
+        onSend={handleSend}
+        disabled={isStreaming}
+        placeholder={
+          isCEO && collabMode
+            ? "Ask the CEO — she'll coordinate with CFO, COO & CMO..."
+            : undefined
+        }
+      />
     </div>
   );
 }
