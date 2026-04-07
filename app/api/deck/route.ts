@@ -28,9 +28,10 @@ The JSON must follow this exact structure:
       "title": "Revenue Projections",
       "chartData": {
         "type": "bar",
+        "unit": "$",
         "title": "Monthly Revenue",
         "labels": ["Q1", "Q2", "Q3", "Q4"],
-        "datasets": [{"label": "Revenue", "data": [50000, 120000, 250000, 400000], "color": "#6366f1"}]
+        "datasets": [{"label": "Revenue", "data": [87000, 214000, 358000, 512000], "color": "#6366f1"}]
       },
       "notes": "Speaker notes"
     },
@@ -76,9 +77,16 @@ Rules:
 - Include at least 2 chart slides with realistic data
 - Include at least 1 image slide
 - Make content compelling, specific, and data-driven
-- Use real-sounding metrics and projections
 - The output MUST contain the deck JSON in a \`\`\`deck code block
 - After the deck block, include a brief summary of the presentation strategy
+
+CRITICAL DATA QUALITY RULES (violations make the deck unusable):
+- EVERY chartData MUST include a "unit" field: "$" for money, "%" for rates, "pts" for scores, "#" for counts, "x" for multiples
+- TEAM SLIDES: Only list real humans. The founder is Dr. Abiy Selassie — Founder & CEO, Industrial Engineer, AI/Analytics Leader. NEVER list a company, product, or abstract concept as a team member.
+- NUMBERS: Use realistic, specific numbers (e.g., $87K, $214K) — not obvious round placeholders ($100K, $200K, $300K)
+- Numbers must be internally consistent across slides. If slide 3 says $500K revenue, slide 8's chart must reflect $500K.
+- Every slide should have a clear investor takeaway, not just raw data
+- NPS is measured in points (pts), NOT dollars. Conversion rates are percentages (%), NOT dollars. Be precise with unit types.
 `;
 
 export async function POST(req: NextRequest) {

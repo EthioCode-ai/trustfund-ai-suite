@@ -23,6 +23,7 @@ export interface ChartData {
   type: "bar" | "line" | "pie" | "funnel" | "metric";
   title: string;
   labels: string[];
+  unit?: "$" | "%" | "pts" | "#" | "x" | "" | string;
   datasets: {
     label: string;
     data: number[];
