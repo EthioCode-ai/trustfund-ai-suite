@@ -51,7 +51,7 @@ export function Sidebar() {
             letterSpacing: "-0.02em",
           }}
         >
-          TrustFund AI
+          Neuromart.ai
         </h1>
         <p
           style={{

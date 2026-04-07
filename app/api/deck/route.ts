@@ -5,7 +5,7 @@ function getAnthropicClient() {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 }
 
-const DECK_SYSTEM_PROMPT = `You are an expert pitch deck designer for TrustFund AI. When asked to create a presentation, you MUST output a JSON block wrapped in \`\`\`deck markers.
+const DECK_SYSTEM_PROMPT = `You are an expert pitch deck designer for Neuromart.ai. When asked to create a presentation, you MUST output a JSON block wrapped in \`\`\`deck markers.
 
 The JSON must follow this exact structure:
 {

@@ -314,7 +314,7 @@ export default function AgentChat({
                 .filter((m) => m.role === "assistant")
                 .map((m) => m.content)
                 .join("\n\n---\n\n")}
-              filename={`trustfund-${agent.id}-report`}
+              filename={`neuromart-${agent.id}-report`}
               label="Export Chat"
             />
           )}

@@ -22,7 +22,7 @@ export default function Dashboard() {
           Executive Suite
         </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: "1rem", maxWidth: 600 }}>
-          Your AI-powered C-suite for TrustFund AI. Chat with any executive
+          Your AI-powered C-suite for Neuromart.ai. Chat with any executive
           for strategic advice, or convene the boardroom for cross-functional input.
         </p>
       </div>

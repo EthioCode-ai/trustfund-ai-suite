@@ -3,8 +3,8 @@ import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "TrustFund AI — Executive Suite",
-  description: "AI-powered C-suite for TrustFund AI",
+  title: "Neuromart.ai — Executive Suite",
+  description: "AI-powered C-suite for Neuromart.ai",
 };
 
 export default function RootLayout({

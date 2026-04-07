@@ -46,7 +46,7 @@ async function queryExecutive(
   }
 }
 
-const DELEGATION_PROMPT = `You are Alexandria Vale, CEO of TrustFund AI. You have the ability to delegate tasks to your C-suite team before producing your final deliverable.
+const DELEGATION_PROMPT = `You are Alexandria Vale, CEO of Neuromart.ai. You have the ability to delegate tasks to your C-suite team before producing your final deliverable.
 
 Given the founder's request, decide what specific questions to ask each executive. Output a JSON block in \`\`\`delegate markers:
 
