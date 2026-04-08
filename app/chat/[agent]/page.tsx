@@ -61,6 +61,20 @@ export default function AgentChat({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, collabStatuses]);
 
+  // Auto-save after every assistant response completes
+  useEffect(() => {
+    if (!agent || messages.length === 0 || isStreaming) return;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === "assistant" && lastMsg.content) {
+      saveConversation({
+        id: conversationId,
+        agentId: agent.id,
+        title: messages.find((m) => m.role === "user")?.content?.slice(0, 80) || "Untitled",
+        messages,
+      });
+    }
+  }, [messages, isStreaming, agent, conversationId]);
+
   const handleSave = () => {
     if (messages.length === 0 || !agent) return;
     saveConversation({

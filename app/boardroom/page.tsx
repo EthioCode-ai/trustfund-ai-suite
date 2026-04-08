@@ -94,7 +94,7 @@ export default function Boardroom() {
         <div>
           <h2 style={{ fontSize: "1rem", fontWeight: 600 }}>The Boardroom</h2>
           <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-            All 5 executives respond to your question in parallel
+            All 6 executives respond to your question in parallel
           </p>
         </div>
       </div>
