@@ -36,7 +36,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const [owner, setOwner] = useState<OwnerProfile | null>(null);
 
-  const [customNavItems, setCustomNavItems] = useState<typeof navItems>([]);
+  const [customNavItems, setCustomNavItems] = useState<typeof agentItems>([]);
 
   useEffect(() => {
     const load = () => {
