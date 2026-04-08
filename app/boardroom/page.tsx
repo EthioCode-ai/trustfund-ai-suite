@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getAllAgents } from "@/lib/agents";
 import { ChatInput } from "@/components/ChatInput";
 import { Crown, DollarSign, Settings, Megaphone, Compass, Database, Users, FileText } from "lucide-react";
@@ -22,6 +22,21 @@ interface BoardResponse {
   content: string;
 }
 
+const BOARDROOM_KEY = "neuromart-boardroom";
+
+function loadBoardroomHistory(): { question: string; responses: BoardResponse[] }[] {
+  try {
+    if (typeof window === "undefined") return [];
+    return JSON.parse(localStorage.getItem(BOARDROOM_KEY) || "[]");
+  } catch { return []; }
+}
+
+function saveBoardroomHistory(history: { question: string; responses: BoardResponse[] }[]) {
+  try {
+    localStorage.setItem(BOARDROOM_KEY, JSON.stringify(history.slice(-20)));
+  } catch { /* ignore */ }
+}
+
 export default function Boardroom() {
   const agents = getAllAgents();
   const [question, setQuestion] = useState("");
@@ -30,6 +45,17 @@ export default function Boardroom() {
   const [history, setHistory] = useState<
     { question: string; responses: BoardResponse[] }[]
   >([]);
+
+  // Load saved boardroom sessions on mount
+  useEffect(() => {
+    const saved = loadBoardroomHistory();
+    if (saved.length > 0) {
+      setHistory(saved);
+      const last = saved[saved.length - 1];
+      setQuestion(last.question);
+      setResponses(last.responses);
+    }
+  }, []);
 
   const handleAsk = async (message: string) => {
     setQuestion(message);
@@ -45,10 +71,12 @@ export default function Boardroom() {
 
       const data = await res.json();
       setResponses(data.responses);
-      setHistory((prev) => [
-        ...prev,
+      const newHistory = [
+        ...history,
         { question: message, responses: data.responses },
-      ]);
+      ];
+      setHistory(newHistory);
+      saveBoardroomHistory(newHistory);
     } catch (error) {
       console.error("Boardroom error:", error);
       setResponses([
