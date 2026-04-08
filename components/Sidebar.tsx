@@ -35,6 +35,9 @@ export function Sidebar() {
 
   useEffect(() => {
     setOwner(loadOwnerProfile());
+    const handleUpdate = () => setOwner(loadOwnerProfile());
+    window.addEventListener("owner-profile-updated", handleUpdate);
+    return () => window.removeEventListener("owner-profile-updated", handleUpdate);
   }, []);
 
   const logoSrc = owner?.companyLogoData || owner?.companyLogoUrl || "";

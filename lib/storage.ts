@@ -78,6 +78,8 @@ export function saveOwnerProfile(profile: Partial<OwnerProfile>): OwnerProfile {
     const current = loadOwnerProfile();
     const updated = { ...current, ...profile };
     localStorage.setItem(OWNER_KEY, JSON.stringify(updated));
+    // Notify other components that profile changed
+    window.dispatchEvent(new Event("owner-profile-updated"));
     return updated;
   } catch {
     return DEFAULT_OWNER;
