@@ -116,8 +116,8 @@ Be specific and data-driven. Reference the research findings.`;
 
 Here are all inputs:
 ## CFO (Marcus Chen):\n${cfoInput}
-## COO (Priya Nakamura):\n${cooInput}
-## CMO (Jordan Okafor):\n${cmoInput}
+## COO (Priya Mekuria):\n${cooInput}
+## CMO (Avihai Solomon):\n${cmoInput}
 ## CSO (Lena Mikhailova):\n${csoInput}
 
 Identify:

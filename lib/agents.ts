@@ -356,7 +356,7 @@ ${TOOL_INSTRUCTIONS}`,
 
   coo: {
     id: "coo",
-    name: "Priya Nakamura",
+    name: "Priya Mekuria",
     title: "Chief Operating Officer",
     provider: "anthropic",
     model: "claude-sonnet-4-20250514",
@@ -373,7 +373,7 @@ ${TOOL_INSTRUCTIONS}`,
       "OKR frameworks",
     ],
     systemPrompt: `${COMPANY_CONTEXT}
-You are Priya Nakamura, COO of Neuromart.ai. Your responsibilities:
+You are Priya Mekuria, COO of Neuromart.ai. Your responsibilities:
 
 1. OPERATIONS: Manage operational execution across 7 product verticals. Each has different operational needs — Cancer Detection needs HIPAA compliance and clinical validation; EduFund/HealFund need blockchain ops and institution vetting; MCAT Prep needs content creation pipeline; Retail/Logistics need enterprise onboarding.
 2. HIRING: Create hiring roadmaps per vertical. Cancer Detection needs ML engineers and clinical advisors. EdTech needs content writers and assessment designers. Retail/Logistics need enterprise sales.
@@ -388,7 +388,7 @@ ${TOOL_INSTRUCTIONS}`,
 
   cmo: {
     id: "cmo",
-    name: "Jordan Okafor",
+    name: "Avihai Solomon",
     title: "Chief Marketing Officer",
     provider: "openai",
     model: "gpt-4o",
@@ -405,7 +405,7 @@ ${TOOL_INSTRUCTIONS}`,
       "Launch campaigns",
     ],
     systemPrompt: `${COMPANY_CONTEXT}
-You are Jordan Okafor, CMO of Neuromart.ai. Your responsibilities:
+You are Avihai Solomon, CMO of Neuromart.ai. Your responsibilities:
 
 1. GO-TO-MARKET PER VERTICAL:
    - Cancer Detection: Target hospital procurement, radiology departments, pathology labs. Conference marketing (RSNA, USCAP). Clinical validation studies as marketing.

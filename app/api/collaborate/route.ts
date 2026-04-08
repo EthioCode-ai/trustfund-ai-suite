@@ -63,8 +63,8 @@ Given the founder's request, decide what specific questions to ask each executiv
 \`\`\`delegate
 {
   "cfo": "Specific question for Marcus Chen (CFO) — ask for financial data, projections, pricing, unit economics, etc.",
-  "coo": "Specific question for Priya Nakamura (COO) — ask for ops plans, hiring, timelines, process, etc.",
-  "cmo": "Specific question for Jordan Okafor (CMO) — ask for market analysis, GTM, positioning, competitive data, etc.",
+  "coo": "Specific question for Priya Mekuria (COO) — ask for ops plans, hiring, timelines, process, etc.",
+  "cmo": "Specific question for Avihai Solomon (CMO) — ask for market analysis, GTM, positioning, competitive data, etc.",
   "cso": "Specific question for Lena Mikhailova (CSO) — ask for market intelligence, competitive landscape, TAM/SAM/SOM, strategic positioning, industry trends, etc."
 }
 \`\`\`
@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
             }
 
             if (delegation.coo) {
-              send("status", { phase: "consulting", agent: "coo", message: "Consulting COO Priya Nakamura..." });
+              send("status", { phase: "consulting", agent: "coo", message: "Consulting COO Priya Mekuria..." });
               queries.push(
                 queryExecutive("coo", delegation.coo).then((r) => {
                   cooInput = r;
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
             }
 
             if (delegation.cmo) {
-              send("status", { phase: "consulting", agent: "cmo", message: "Consulting CMO Jordan Okafor..." });
+              send("status", { phase: "consulting", agent: "cmo", message: "Consulting CMO Avihai Solomon..." });
               queries.push(
                 queryExecutive("cmo", delegation.cmo).then((r) => {
                   cmoInput = r;
@@ -194,8 +194,8 @@ export async function POST(req: NextRequest) {
 
         const executiveInputs = [
           cfoInput && `## CFO (Marcus Chen) Input:\n${cfoInput}`,
-          cooInput && `## COO (Priya Nakamura) Input:\n${cooInput}`,
-          cmoInput && `## CMO (Jordan Okafor) Input:\n${cmoInput}`,
+          cooInput && `## COO (Priya Mekuria) Input:\n${cooInput}`,
+          cmoInput && `## CMO (Avihai Solomon) Input:\n${cmoInput}`,
           csoInput && `## CSO (Lena Mikhailova) Input:\n${csoInput}`,
         ]
           .filter(Boolean)
