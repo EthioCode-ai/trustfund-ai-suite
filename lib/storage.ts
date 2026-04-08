@@ -38,10 +38,25 @@ export interface OwnerProfile {
   companyLogoData: string; // base64 local upload
   industry: string;
   appTheme: "dark" | "light";
+  rulesOfEngagement: string;
+  customAgents: CustomAgent[];
   communicationPrefs: {
     digestFrequency: "daily" | "weekly" | "never";
     autoSend: boolean;
   };
+}
+
+export interface CustomAgent {
+  id: string;
+  name: string;
+  title: string;
+  provider: "anthropic" | "openai" | "google";
+  color: string;
+  icon: string;
+  description: string;
+  capabilities: string[];
+  customInstructions: string;
+  enabled: boolean;
 }
 
 const DEFAULT_OWNER: OwnerProfile = {
@@ -57,6 +72,8 @@ const DEFAULT_OWNER: OwnerProfile = {
   companyLogoData: "",
   industry: "AI / Technology",
   appTheme: "dark",
+  rulesOfEngagement: "",
+  customAgents: [],
   communicationPrefs: {
     digestFrequency: "weekly",
     autoSend: false,

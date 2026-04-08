@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { loadOwnerProfile, saveOwnerProfile, OwnerProfile } from "@/lib/storage";
-import { Check, Upload, X } from "lucide-react";
+import { loadOwnerProfile, saveOwnerProfile, OwnerProfile, CustomAgent } from "@/lib/storage";
+import { ICON_OPTIONS, COLOR_OPTIONS } from "@/lib/agent-manager";
+import { Check, Upload, X, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<OwnerProfile | null>(null);
@@ -380,6 +381,92 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Rules of Engagement */}
+      <section style={{ marginBottom: 36 }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: 8, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
+          Rules of Engagement
+        </h2>
+        <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 16 }}>
+          These rules become the North Star for every agent. They will follow these guidelines above all other instructions.
+        </p>
+        <textarea
+          value={profile.rulesOfEngagement}
+          onChange={(e) => update("rulesOfEngagement", e.target.value)}
+          placeholder={"Examples:\n• Always cite sources for any data or statistics\n• Never make timeline promises without consulting the COO\n• All financial projections must include bull/base/bear scenarios\n• Address the founder as Dr. Selassie\n• Prioritize East Africa and North America as target markets\n• When in doubt, ask — don't assume"}
+          rows={8}
+          style={{
+            ...inputStyle,
+            minHeight: 160,
+            resize: "vertical",
+            lineHeight: 1.7,
+          }}
+        />
+      </section>
+
+      {/* Agent Manager */}
+      <section style={{ marginBottom: 36 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
+          <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)" }}>
+            Agent Manager
+          </h2>
+          <button
+            onClick={() => {
+              const newAgent: CustomAgent = {
+                id: `custom-${Date.now()}`,
+                name: "",
+                title: "",
+                provider: "openai",
+                color: COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)],
+                icon: "Zap",
+                description: "",
+                capabilities: [],
+                customInstructions: "",
+                enabled: true,
+              };
+              update("customAgents", [...(profile.customAgents || []), newAgent]);
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 14px", borderRadius: 8,
+              background: "#6366f1", border: "none", color: "#fff",
+              fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            <Plus size={14} />
+            Add Agent
+          </button>
+        </div>
+        <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 16 }}>
+          Add, remove, or customize your executive team. Custom agents appear alongside the built-in team.
+        </p>
+
+        {(!profile.customAgents || profile.customAgents.length === 0) && (
+          <div style={{ padding: 32, textAlign: "center", color: "var(--text-secondary)", fontSize: "0.85rem", background: "var(--bg-tertiary)", borderRadius: 12, border: "1px solid var(--border)" }}>
+            No custom agents yet. Click &quot;Add Agent&quot; to create one.
+          </div>
+        )}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {(profile.customAgents || []).map((agent, idx) => (
+            <AgentEditor
+              key={agent.id}
+              agent={agent}
+              inputStyle={inputStyle}
+              labelStyle={labelStyle}
+              onUpdate={(updated) => {
+                const agents = [...(profile.customAgents || [])];
+                agents[idx] = updated;
+                update("customAgents", agents);
+              }}
+              onDelete={() => {
+                const agents = (profile.customAgents || []).filter((_, i) => i !== idx);
+                update("customAgents", agents);
+              }}
+            />
+          ))}
+        </div>
+      </section>
+
       {/* Preview */}
       <section>
         <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: 20, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
@@ -410,6 +497,169 @@ export default function SettingsPage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function AgentEditor({
+  agent, inputStyle, labelStyle, onUpdate, onDelete,
+}: {
+  agent: CustomAgent;
+  inputStyle: Record<string, unknown>;
+  labelStyle: Record<string, unknown>;
+  onUpdate: (agent: CustomAgent) => void;
+  onDelete: () => void;
+}) {
+  const [expanded, setExpanded] = useState(!agent.name);
+
+  const set = (field: string, value: unknown) => {
+    onUpdate({ ...agent, [field]: value });
+  };
+
+  return (
+    <div style={{
+      background: "var(--bg-tertiary)",
+      border: `1px solid ${agent.enabled ? agent.color + "40" : "var(--border)"}`,
+      borderRadius: 12,
+      overflow: "hidden",
+      opacity: agent.enabled ? 1 : 0.6,
+    }}>
+      {/* Header */}
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "12px 16px", cursor: "pointer",
+        }}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div style={{
+          width: 36, height: 36, borderRadius: 10,
+          background: `${agent.color}20`, display: "flex",
+          alignItems: "center", justifyContent: "center",
+          fontSize: "0.9rem", fontWeight: 700, color: agent.color,
+        }}>
+          {agent.name?.[0] || "?"}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)" }}>
+            {agent.name || "New Agent"}
+          </div>
+          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+            {agent.title || "Untitled Role"} — {agent.provider === "anthropic" ? "Claude" : agent.provider === "google" ? "Gemini" : "GPT-4o"}
+          </div>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); set("enabled", !agent.enabled); }}
+          style={{
+            width: 40, height: 22, borderRadius: 11, border: "none",
+            background: agent.enabled ? "#10b981" : "var(--border)",
+            cursor: "pointer", position: "relative", transition: "all 0.2s",
+          }}
+        >
+          <div style={{
+            width: 16, height: 16, borderRadius: "50%", background: "#fff",
+            position: "absolute", top: 3,
+            left: agent.enabled ? 21 : 3, transition: "left 0.2s",
+          }} />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 4, display: "flex" }}
+        >
+          <Trash2 size={16} />
+        </button>
+        {expanded ? <ChevronUp size={16} style={{ color: "var(--text-secondary)" }} /> : <ChevronDown size={16} style={{ color: "var(--text-secondary)" }} />}
+      </div>
+
+      {/* Expanded editor */}
+      {expanded && (
+        <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div>
+              <label style={labelStyle}>Name</label>
+              <input value={agent.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Sarah Mitchell" style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Title</label>
+              <input value={agent.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Chief Product Officer" style={inputStyle} />
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div>
+              <label style={labelStyle}>LLM Provider</label>
+              <select value={agent.provider} onChange={(e) => set("provider", e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
+                <option value="anthropic">Claude (Anthropic)</option>
+                <option value="openai">GPT-4o (OpenAI)</option>
+                <option value="google">Gemini (Google)</option>
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Accent Color</label>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {COLOR_OPTIONS.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => set("color", c)}
+                    style={{
+                      width: 24, height: 24, borderRadius: 6, background: c,
+                      border: agent.color === c ? "2px solid var(--text-primary)" : "2px solid transparent",
+                      cursor: "pointer",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Description (shown on dashboard card)</label>
+            <input value={agent.description} onChange={(e) => set("description", e.target.value)} placeholder="What does this agent do?" style={inputStyle} />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Capabilities (comma-separated)</label>
+            <input
+              value={agent.capabilities.join(", ")}
+              onChange={(e) => set("capabilities", e.target.value.split(",").map((s: string) => s.trim()).filter(Boolean))}
+              placeholder="e.g. Product roadmap, Feature prioritization, User research"
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Custom Instructions</label>
+            <textarea
+              value={agent.customInstructions}
+              onChange={(e) => set("customInstructions", e.target.value)}
+              placeholder={"Detailed instructions for this agent's behavior, expertise, and responsibilities.\n\ne.g. You are the Chief Product Officer. Your responsibilities include:\n1. Product roadmap and prioritization\n2. Feature scoping and user story writing\n3. User research synthesis\n..."}
+              rows={6}
+              style={{ ...inputStyle, resize: "vertical", minHeight: 120, lineHeight: 1.6 }}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Icon</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {ICON_OPTIONS.map((icon) => (
+                <button
+                  key={icon}
+                  onClick={() => set("icon", icon)}
+                  style={{
+                    padding: "4px 10px", borderRadius: 6, fontSize: "0.75rem",
+                    background: agent.icon === icon ? `${agent.color}20` : "var(--bg-secondary)",
+                    border: agent.icon === icon ? `1px solid ${agent.color}` : "1px solid var(--border)",
+                    color: agent.icon === icon ? agent.color : "var(--text-secondary)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

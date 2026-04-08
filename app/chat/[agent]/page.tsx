@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, use } from "react";
-import { getAgent, agents as allAgents } from "@/lib/agents";
+import { agents as allAgents } from "@/lib/agents";
+import { getMergedAgent, getMergedAgents } from "@/lib/agent-manager";
 import { ChatMessage as ChatMessageType, AgentRole } from "@/lib/types";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
@@ -30,7 +31,13 @@ export default function AgentChat({
   params: Promise<{ agent: string }>;
 }) {
   const { agent: agentId } = use(params);
-  const agent = getAgent(agentId);
+  const [agent, setAgent] = useState(allAgents[agentId] || null);
+
+  // Resolve agent (built-in or custom) on mount
+  useEffect(() => {
+    const merged = getMergedAgent(agentId);
+    if (merged) setAgent(merged);
+  }, [agentId]);
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [collabMode, setCollabMode] = useState(false);
@@ -176,7 +183,12 @@ export default function AgentChat({
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId: agent.id, messages: apiMessages, ownerContext: loadOwnerProfile() }),
+        body: JSON.stringify({
+          agentId: agent.id,
+          messages: apiMessages,
+          ownerContext: loadOwnerProfile(),
+          customAgentData: !allAgents[agent.id] ? agent : undefined,
+        }),
       });
 
       await processSSEStream(response);

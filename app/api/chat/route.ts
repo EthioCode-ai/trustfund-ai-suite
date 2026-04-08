@@ -15,8 +15,13 @@ function getGeminiClient() {
 }
 
 export async function POST(req: NextRequest) {
-  const { agentId, messages, ownerContext } = await req.json();
-  const agent = getAgent(agentId);
+  const { agentId, messages, ownerContext, customAgentData } = await req.json();
+
+  // Try built-in agent first, fall back to custom agent data from client
+  let agent = getAgent(agentId);
+  if (!agent && customAgentData) {
+    agent = customAgentData;
+  }
 
   if (!agent) {
     return new Response(JSON.stringify({ error: "Agent not found" }), {
@@ -24,11 +29,14 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Build owner-aware system prompt
+  // Build owner-aware system prompt with RoE
   const ownerInfo = ownerContext
     ? `\n\n## OWNER PROFILE (the person you report to)\nName: ${ownerContext.name || "Not set"}\nRole: ${ownerContext.role || "Founder"}\nEmail: ${ownerContext.email || "Not set"}\nPhone: ${ownerContext.phone || "Not set"}\nCompany: ${ownerContext.companyName || "Not set"}\nIndustry: ${ownerContext.industry || "Not set"}\n\nIMPORTANT: Use the owner's email for all email communications. Address them by name. Use their company name in all documents and presentations.`
     : "";
-  const systemPrompt = agent.systemPrompt + ownerInfo;
+  const roeBlock = ownerContext?.rulesOfEngagement
+    ? `\n\n## RULES OF ENGAGEMENT (Your North Star — follow these above all else)\n${ownerContext.rulesOfEngagement}\n`
+    : "";
+  const systemPrompt = agent.systemPrompt + roeBlock + ownerInfo;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

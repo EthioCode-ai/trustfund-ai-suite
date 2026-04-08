@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { loadOwnerProfile, OwnerProfile } from "@/lib/storage";
+import { getMergedAgents } from "@/lib/agent-manager";
 import {
   LayoutDashboard,
   Crown,
@@ -33,11 +34,30 @@ export function Sidebar() {
   const pathname = usePathname();
   const [owner, setOwner] = useState<OwnerProfile | null>(null);
 
+  const [customNavItems, setCustomNavItems] = useState<typeof navItems>([]);
+
   useEffect(() => {
-    setOwner(loadOwnerProfile());
-    const handleUpdate = () => setOwner(loadOwnerProfile());
-    window.addEventListener("owner-profile-updated", handleUpdate);
-    return () => window.removeEventListener("owner-profile-updated", handleUpdate);
+    const load = () => {
+      setOwner(loadOwnerProfile());
+      try {
+        const merged = getMergedAgents();
+        const builtInIds = navItems.filter(n => n.href.startsWith("/chat/")).map(n => n.href.replace("/chat/", ""));
+        const custom = merged
+          .filter((a) => !builtInIds.includes(a.id))
+          .map((a) => ({
+            href: `/chat/${a.id}`,
+            label: `${a.title.split(" ").map(w => w[0]).join("").slice(0, 3).toUpperCase()} — ${a.name.split(" ")[0]}`,
+            icon: LayoutDashboard, // fallback, color handles identity
+            color: a.color,
+          }));
+        setCustomNavItems(custom);
+      } catch {
+        // ignore
+      }
+    };
+    load();
+    window.addEventListener("owner-profile-updated", load);
+    return () => window.removeEventListener("owner-profile-updated", load);
   }, []);
 
   const logoSrc = owner?.companyLogoData || owner?.companyLogoUrl || "";
@@ -162,7 +182,7 @@ export function Sidebar() {
         Executive Suite
       </div>
 
-      {navItems.map((item) => {
+      {[...navItems, ...customNavItems].map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
         return (
