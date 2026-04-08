@@ -18,14 +18,16 @@ import {
   UserCircle,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+const agentItems = [
   { href: "/chat/ceo", label: "CEO — Alexandria", icon: Crown, color: "#6366f1" },
   { href: "/chat/cfo", label: "CFO — Marcus", icon: DollarSign, color: "#10b981" },
   { href: "/chat/coo", label: "COO — Priya", icon: Settings, color: "#f59e0b" },
   { href: "/chat/cmo", label: "CMO — Avihai", icon: Megaphone, color: "#ec4899" },
   { href: "/chat/cso", label: "CSO — Lena", icon: Compass, color: "#0ea5e9" },
   { href: "/chat/cdo", label: "CDO — Daniel", icon: Database, color: "#14b8a6" },
+];
+
+const bottomItems = [
   { href: "/boardroom", label: "Boardroom", icon: Users },
   { href: "/history", label: "History", icon: History },
 ];
@@ -170,6 +172,15 @@ export function Sidebar() {
         </div>
       </Link>
 
+      {/* Dashboard */}
+      <Link
+        href="/"
+        className={`sidebar-link ${pathname === "/" ? "active" : ""}`}
+      >
+        <LayoutDashboard size={18} style={{ color: pathname === "/" ? "#fff" : undefined }} />
+        Dashboard
+      </Link>
+
       {/* Executive Suite label */}
       <div style={{
         padding: "10px 16px 6px",
@@ -182,7 +193,8 @@ export function Sidebar() {
         Executive Suite
       </div>
 
-      {[...navItems, ...customNavItems].map((item) => {
+      {/* All agents grouped: built-in + custom */}
+      {[...agentItems, ...customNavItems].map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
         return (
@@ -194,6 +206,28 @@ export function Sidebar() {
             <Icon
               size={18}
               style={{ color: item.color || (isActive ? "#fff" : undefined) }}
+            />
+            {item.label}
+          </Link>
+        );
+      })}
+
+      {/* Separator */}
+      <div style={{ height: 1, background: "var(--border)", margin: "8px 12px" }} />
+
+      {/* Bottom items */}
+      {bottomItems.map((item) => {
+        const isActive = pathname === item.href;
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`sidebar-link ${isActive ? "active" : ""}`}
+          >
+            <Icon
+              size={18}
+              style={{ color: isActive ? "#fff" : undefined }}
             />
             {item.label}
           </Link>
