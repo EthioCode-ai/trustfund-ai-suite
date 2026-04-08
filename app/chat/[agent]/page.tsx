@@ -327,7 +327,7 @@ export default function AgentChat({
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 600 }}>{agent.name}</h2>
           <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-            {agent.title} — {agent.provider === "anthropic" ? "Claude" : "GPT-4o"}
+            {agent.title} — {agent.provider === "anthropic" ? "Claude" : agent.provider === "google" ? "Gemini" : "GPT-4o"}
             {isCEO && collabMode && " — Collaboration Mode"}
           </p>
         </div>

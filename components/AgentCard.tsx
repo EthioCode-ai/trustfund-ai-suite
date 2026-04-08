@@ -86,7 +86,7 @@ export function AgentCard({ agent }: { agent: Agent }) {
           }}
         >
           <span>
-            {agent.provider === "anthropic" ? "Claude" : "GPT-4o"}
+            {agent.provider === "anthropic" ? "Claude" : agent.provider === "google" ? "Gemini" : "GPT-4o"}
           </span>
           <span style={{ color: agent.color }}>Chat →</span>
         </div>
