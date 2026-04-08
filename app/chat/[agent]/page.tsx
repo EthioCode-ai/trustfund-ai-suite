@@ -61,19 +61,43 @@ export default function AgentChat({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, collabStatuses]);
 
-  // Auto-save after every assistant response completes
+  // Helper: save current conversation state
+  const saveNow = () => {
+    if (!agent || messages.length === 0) return;
+    saveConversation({
+      id: conversationId,
+      agentId: agent.id,
+      title: messages.find((m) => m.role === "user")?.content?.slice(0, 80) || "Untitled",
+      messages,
+    });
+  };
+
+  // Auto-save on EVERY message change (user or assistant)
   useEffect(() => {
-    if (!agent || messages.length === 0 || isStreaming) return;
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg?.role === "assistant" && lastMsg.content) {
-      saveConversation({
-        id: conversationId,
-        agentId: agent.id,
-        title: messages.find((m) => m.role === "user")?.content?.slice(0, 80) || "Untitled",
-        messages,
-      });
-    }
-  }, [messages, isStreaming, agent, conversationId]);
+    if (!agent || messages.length === 0) return;
+    saveNow();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
+  // Auto-save every 10 seconds during active streaming
+  useEffect(() => {
+    if (!isStreaming || !agent || messages.length === 0) return;
+    const interval = setInterval(saveNow, 10000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStreaming, messages]);
+
+  // Save when user navigates away or closes browser
+  useEffect(() => {
+    const handleBeforeUnload = () => saveNow();
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      // Also save when component unmounts (navigating to another page)
+      saveNow();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, agent, conversationId]);
 
   const handleSave = () => {
     if (messages.length === 0 || !agent) return;

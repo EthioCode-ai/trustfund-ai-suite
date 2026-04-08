@@ -57,6 +57,18 @@ export default function Boardroom() {
     }
   }, []);
 
+  // Save when navigating away or closing browser
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (history.length > 0) saveBoardroomHistory(history);
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (history.length > 0) saveBoardroomHistory(history);
+    };
+  }, [history]);
+
   const handleAsk = async (message: string) => {
     setQuestion(message);
     setResponses([]);
