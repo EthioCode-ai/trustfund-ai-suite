@@ -7,7 +7,7 @@ import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { ExportButton } from "@/components/ExportButton";
 import { Crown, DollarSign, Settings, Megaphone, Compass, Database, Users, Save, Download } from "lucide-react";
-import { saveConversation, getConversation } from "@/lib/storage";
+import { saveConversation, getConversation, loadOwnerProfile } from "@/lib/storage";
 
 const agentIcons: Record<string, React.ComponentType<{ size?: number }>> = {
   Crown,
@@ -152,7 +152,7 @@ export default function AgentChat({
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId: agent.id, messages: apiMessages }),
+        body: JSON.stringify({ agentId: agent.id, messages: apiMessages, ownerContext: loadOwnerProfile() }),
       });
 
       await processSSEStream(response);

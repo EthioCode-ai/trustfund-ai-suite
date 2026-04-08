@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { loadOwnerProfile, OwnerProfile } from "@/lib/storage";
 import {
   LayoutDashboard,
   Crown,
@@ -12,6 +14,7 @@ import {
   Database,
   Users,
   History,
+  UserCircle,
 } from "lucide-react";
 
 const navItems = [
@@ -28,6 +31,11 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [owner, setOwner] = useState<OwnerProfile | null>(null);
+
+  useEffect(() => {
+    setOwner(loadOwnerProfile());
+  }, []);
 
   return (
     <aside
@@ -44,9 +52,9 @@ export function Sidebar() {
     >
       <div
         style={{
-          padding: "8px 16px 20px",
+          padding: "8px 16px 16px",
           borderBottom: "1px solid var(--border)",
-          marginBottom: 12,
+          marginBottom: 8,
         }}
       >
         <h1
@@ -57,7 +65,7 @@ export function Sidebar() {
             letterSpacing: "-0.02em",
           }}
         >
-          Neuromart.ai
+          {owner?.companyName || "Neuromart.ai"}
         </h1>
         <p
           style={{
@@ -69,6 +77,61 @@ export function Sidebar() {
           Executive Suite
         </p>
       </div>
+
+      {/* Owner Profile Card */}
+      <Link
+        href="/settings"
+        className={`sidebar-link ${pathname === "/settings" ? "active" : ""}`}
+        style={{
+          padding: "10px 14px",
+          marginBottom: 8,
+          borderRadius: 12,
+          border: pathname === "/settings" ? "1px solid #6366f140" : "1px solid var(--border)",
+          background: pathname === "/settings" ? "var(--bg-tertiary)" : "var(--bg-tertiary)",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          textDecoration: "none",
+          color: "inherit",
+          transition: "all 0.15s",
+        }}
+      >
+        {owner?.photoUrl ? (
+          <img
+            src={owner.photoUrl}
+            alt=""
+            style={{
+              width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
+              border: "2px solid #6366f140",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: 32, height: 32, borderRadius: "50%",
+              background: "linear-gradient(135deg, #6366f1, #818cf8)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", fontSize: "0.8rem", fontWeight: 700, flexShrink: 0,
+            }}
+          >
+            {owner?.name?.[0] || <UserCircle size={18} />}
+          </div>
+        )}
+        <div style={{ overflow: "hidden" }}>
+          <div style={{
+            fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            {owner?.name || "Set up profile"}
+          </div>
+          <div style={{
+            fontSize: "0.65rem", color: "var(--text-secondary)",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            {owner?.name ? (owner.role || "Owner") : "Click to configure"}
+          </div>
+        </div>
+      </Link>
 
       {navItems.map((item) => {
         const isActive = pathname === item.href;

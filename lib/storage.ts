@@ -22,6 +22,61 @@ export interface SavedDeck {
 
 const CONVO_KEY = "neuromart-conversations";
 const DECK_KEY = "neuromart-decks";
+const OWNER_KEY = "neuromart-owner";
+
+// Owner Profile
+export interface OwnerProfile {
+  name: string;
+  email: string;
+  phone: string;
+  companyName: string;
+  companyTagline: string;
+  role: string;
+  photoUrl: string;
+  industry: string;
+  communicationPrefs: {
+    digestFrequency: "daily" | "weekly" | "never";
+    autoSend: boolean;
+  };
+}
+
+const DEFAULT_OWNER: OwnerProfile = {
+  name: "",
+  email: "",
+  phone: "",
+  companyName: "Neuromart.ai",
+  companyTagline: "AI Solutions for Every Business",
+  role: "Founder & CEO",
+  photoUrl: "",
+  industry: "AI / Technology",
+  communicationPrefs: {
+    digestFrequency: "weekly",
+    autoSend: false,
+  },
+};
+
+export function loadOwnerProfile(): OwnerProfile {
+  if (!canUseStorage()) return DEFAULT_OWNER;
+  try {
+    const stored = localStorage.getItem(OWNER_KEY);
+    if (!stored) return DEFAULT_OWNER;
+    return { ...DEFAULT_OWNER, ...JSON.parse(stored) };
+  } catch {
+    return DEFAULT_OWNER;
+  }
+}
+
+export function saveOwnerProfile(profile: Partial<OwnerProfile>): OwnerProfile {
+  if (!canUseStorage()) return DEFAULT_OWNER;
+  try {
+    const current = loadOwnerProfile();
+    const updated = { ...current, ...profile };
+    localStorage.setItem(OWNER_KEY, JSON.stringify(updated));
+    return updated;
+  } catch {
+    return DEFAULT_OWNER;
+  }
+}
 
 function canUseStorage(): boolean {
   try {

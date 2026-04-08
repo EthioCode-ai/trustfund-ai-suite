@@ -15,7 +15,7 @@ function getGeminiClient() {
 }
 
 export async function POST(req: NextRequest) {
-  const { agentId, messages } = await req.json();
+  const { agentId, messages, ownerContext } = await req.json();
   const agent = getAgent(agentId);
 
   if (!agent) {
@@ -23,6 +23,12 @@ export async function POST(req: NextRequest) {
       status: 404,
     });
   }
+
+  // Build owner-aware system prompt
+  const ownerInfo = ownerContext
+    ? `\n\n## OWNER PROFILE (the person you report to)\nName: ${ownerContext.name || "Not set"}\nRole: ${ownerContext.role || "Founder"}\nEmail: ${ownerContext.email || "Not set"}\nPhone: ${ownerContext.phone || "Not set"}\nCompany: ${ownerContext.companyName || "Not set"}\nIndustry: ${ownerContext.industry || "Not set"}\n\nIMPORTANT: Use the owner's email for all email communications. Address them by name. Use their company name in all documents and presentations.`
+    : "";
+  const systemPrompt = agent.systemPrompt + ownerInfo;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -32,7 +38,7 @@ export async function POST(req: NextRequest) {
           const response = await getAnthropicClient().messages.stream({
             model: agent.model,
             max_tokens: 4096,
-            system: agent.systemPrompt,
+            system: systemPrompt,
             messages: messages.map(
               (m: { role: string; content: string }) => ({
                 role: m.role as "user" | "assistant",
@@ -64,7 +70,7 @@ export async function POST(req: NextRequest) {
 
           const chat = model.startChat({
             history: [
-              { role: "user", parts: [{ text: "System instructions: " + agent.systemPrompt }] },
+              { role: "user", parts: [{ text: "System instructions: " + systemPrompt }] },
               { role: "model", parts: [{ text: "Understood. I will follow these instructions precisely." }] },
               ...geminiHistory,
             ],
@@ -87,7 +93,7 @@ export async function POST(req: NextRequest) {
             max_tokens: 4096,
             stream: true,
             messages: [
-              { role: "system", content: agent.systemPrompt },
+              { role: "system", content: systemPrompt },
               ...messages.map(
                 (m: { role: string; content: string }) => ({
                   role: m.role as "user" | "assistant",
