@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { AuthGate } from "@/components/AuthGate";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Neuromart.ai — Executive Suite",
@@ -14,14 +15,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <body>
-        <AuthGate>
-          <div style={{ display: "flex", minHeight: "100vh" }}>
-            <Sidebar />
-            <main style={{ flex: 1, overflow: "auto" }}>{children}</main>
-          </div>
-        </AuthGate>
+        <ThemeProvider>
+          <AuthGate>
+            <div style={{ display: "flex", minHeight: "100vh" }}>
+              <Sidebar />
+              <main style={{ flex: 1, overflow: "auto" }}>{children}</main>
+            </div>
+          </AuthGate>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,16 +1,40 @@
 @import "tailwindcss";
 
-:root {
+/* Dark theme (default) */
+:root,
+[data-theme="dark"] {
   --bg-primary: #0a0a0f;
   --bg-secondary: #12121a;
   --bg-tertiary: #1a1a2e;
   --border: #2a2a3e;
   --text-primary: #e4e4ed;
   --text-secondary: #9494a8;
+  --text-highlight: #ffffff;
   --accent-ceo: #6366f1;
   --accent-cfo: #10b981;
   --accent-coo: #f59e0b;
   --accent-cmo: #ec4899;
+  --bullet-color: #818cf8;
+  --card-bg: #1a1a2e;
+  --card-border: #2a2a3e;
+}
+
+/* Light theme */
+[data-theme="light"] {
+  --bg-primary: #f8f9fb;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-highlight: #0f172a;
+  --accent-ceo: #6366f1;
+  --accent-cfo: #10b981;
+  --accent-coo: #f59e0b;
+  --accent-cmo: #ec4899;
+  --bullet-color: #6366f1;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
 }
 
 * {
@@ -73,6 +97,7 @@ body {
   margin-top: 12px;
   margin-bottom: 6px;
   font-weight: 600;
+  color: var(--text-highlight);
 }
 .chat-bubble-assistant h1 { font-size: 1.25rem; }
 .chat-bubble-assistant h2 { font-size: 1.1rem; }
@@ -98,13 +123,20 @@ body {
   line-height: 1.6;
 }
 .chat-bubble-assistant li::marker {
-  color: #6366f1;
+  color: var(--bullet-color);
+}
+
+.chat-bubble-assistant code {
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.88em;
 }
 .chat-bubble-assistant p {
   margin: 6px 0;
 }
 .chat-bubble-assistant strong {
-  color: #fff;
+  color: var(--text-highlight);
 }
 .chat-bubble-assistant table {
   border-collapse: collapse;

@@ -37,6 +37,7 @@ export interface OwnerProfile {
   companyLogoUrl: string;
   companyLogoData: string; // base64 local upload
   industry: string;
+  appTheme: "dark" | "light";
   communicationPrefs: {
     digestFrequency: "daily" | "weekly" | "never";
     autoSend: boolean;
@@ -55,6 +56,7 @@ const DEFAULT_OWNER: OwnerProfile = {
   companyLogoUrl: "",
   companyLogoData: "",
   industry: "AI / Technology",
+  appTheme: "dark",
   communicationPrefs: {
     digestFrequency: "weekly",
     autoSend: false,

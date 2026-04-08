@@ -286,6 +286,45 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Appearance */}
+      <section style={{ marginBottom: 36 }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: 20, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
+          Appearance
+        </h2>
+        <div>
+          <label style={labelStyle}>Theme</label>
+          <div style={{ display: "flex", gap: 12 }}>
+            {[
+              { value: "dark" as const, label: "Dark", icon: "🌙", desc: "Dark background, light text" },
+              { value: "light" as const, label: "Light", icon: "☀️", desc: "Light background, dark text" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => update("appTheme", opt.value)}
+                style={{
+                  flex: 1,
+                  padding: "16px 20px",
+                  borderRadius: 12,
+                  border: profile.appTheme === opt.value ? "2px solid #6366f1" : "1px solid var(--border)",
+                  background: profile.appTheme === opt.value ? "#6366f110" : "var(--bg-tertiary)",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 0.15s",
+                }}
+              >
+                <div style={{ fontSize: "1.2rem", marginBottom: 6 }}>{opt.icon}</div>
+                <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>
+                  {opt.label}
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                  {opt.desc}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Communication Preferences */}
       <section style={{ marginBottom: 36 }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: 20, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
