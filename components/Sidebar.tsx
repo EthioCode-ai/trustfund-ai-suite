@@ -37,6 +37,9 @@ export function Sidebar() {
     setOwner(loadOwnerProfile());
   }, []);
 
+  const logoSrc = owner?.companyLogoData || owner?.companyLogoUrl || "";
+  const photoSrc = owner?.photoData || owner?.photoUrl || "";
+
   return (
     <aside
       style={{
@@ -50,44 +53,55 @@ export function Sidebar() {
         flexShrink: 0,
       }}
     >
+      {/* Company Logo + Name */}
       <div
         style={{
-          padding: "8px 16px 16px",
+          padding: "8px 16px 14px",
           borderBottom: "1px solid var(--border)",
           marginBottom: 8,
         }}
       >
-        <h1
-          style={{
-            fontSize: "1.1rem",
-            fontWeight: 700,
-            color: "var(--text-primary)",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {owner?.companyName || "Neuromart.ai"}
-        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+          {logoSrc ? (
+            <img
+              src={logoSrc}
+              alt=""
+              style={{ width: 28, height: 28, borderRadius: 6, objectFit: "contain" }}
+            />
+          ) : null}
+          <h1
+            style={{
+              fontSize: "1.1rem",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {owner?.companyName || "Neuromart.ai"}
+          </h1>
+        </div>
         <p
           style={{
-            fontSize: "0.75rem",
+            fontSize: "0.65rem",
             color: "var(--text-secondary)",
             marginTop: 2,
+            letterSpacing: "0.01em",
           }}
         >
-          Executive Suite
+          Agentic AI: Powered by Neuromart
         </p>
       </div>
 
-      {/* Owner Profile Card */}
+      {/* Owner's Suite Card */}
       <Link
         href="/settings"
         className={`sidebar-link ${pathname === "/settings" ? "active" : ""}`}
         style={{
           padding: "10px 14px",
-          marginBottom: 8,
+          marginBottom: 4,
           borderRadius: 12,
           border: pathname === "/settings" ? "1px solid #6366f140" : "1px solid var(--border)",
-          background: pathname === "/settings" ? "var(--bg-tertiary)" : "var(--bg-tertiary)",
+          background: "var(--bg-tertiary)",
           display: "flex",
           alignItems: "center",
           gap: 10,
@@ -96,9 +110,9 @@ export function Sidebar() {
           transition: "all 0.15s",
         }}
       >
-        {owner?.photoUrl ? (
+        {photoSrc ? (
           <img
-            src={owner.photoUrl}
+            src={photoSrc}
             alt=""
             style={{
               width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
@@ -122,7 +136,7 @@ export function Sidebar() {
             fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)",
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           }}>
-            {owner?.name || "Set up profile"}
+            {owner?.name || "Owner's Suite"}
           </div>
           <div style={{
             fontSize: "0.65rem", color: "var(--text-secondary)",
@@ -132,6 +146,18 @@ export function Sidebar() {
           </div>
         </div>
       </Link>
+
+      {/* Executive Suite label */}
+      <div style={{
+        padding: "10px 16px 6px",
+        fontSize: "0.65rem",
+        fontWeight: 600,
+        color: "var(--text-secondary)",
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+      }}>
+        Executive Suite
+      </div>
 
       {navItems.map((item) => {
         const isActive = pathname === item.href;
@@ -151,7 +177,7 @@ export function Sidebar() {
         );
       })}
 
-      <div style={{ marginTop: "auto", padding: "16px", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+      <div style={{ marginTop: "auto", padding: "16px", fontSize: "0.65rem", color: "var(--text-secondary)" }}>
         <p>Powered by Claude, GPT & Gemini</p>
       </div>
     </aside>

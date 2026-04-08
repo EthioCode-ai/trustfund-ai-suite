@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { loadOwnerProfile, saveOwnerProfile, OwnerProfile } from "@/lib/storage";
-import { Check } from "lucide-react";
+import { Check, Upload, X } from "lucide-react";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<OwnerProfile | null>(null);
   const [saved, setSaved] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setProfile(loadOwnerProfile());
@@ -17,6 +19,20 @@ export default function SettingsPage() {
   const update = (field: string, value: string | boolean | object) => {
     setProfile((prev) => prev ? { ...prev, [field]: value } : prev);
     setSaved(false);
+  };
+
+  const handleFileUpload = (field: "photoData" | "companyLogoData") => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 500_000) {
+      alert("File too large. Please use an image under 500KB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      update(field, reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSave = () => {
@@ -124,13 +140,58 @@ export default function SettingsPage() {
             </p>
           </div>
           <div style={{ gridColumn: "1 / -1" }}>
-            <label style={labelStyle}>Profile Photo URL (optional)</label>
-            <input
-              value={profile.photoUrl}
-              onChange={(e) => update("photoUrl", e.target.value)}
-              placeholder="https://..."
-              style={inputStyle}
-            />
+            <label style={labelStyle}>Profile Photo</label>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {(profile.photoData || profile.photoUrl) ? (
+                <div style={{ position: "relative" }}>
+                  <img
+                    src={profile.photoData || profile.photoUrl}
+                    alt=""
+                    style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--border)" }}
+                  />
+                  <button
+                    onClick={() => { update("photoData", ""); update("photoUrl", ""); }}
+                    style={{
+                      position: "absolute", top: -4, right: -4, width: 20, height: 20,
+                      borderRadius: "50%", background: "#ef4444", border: "none",
+                      color: "#fff", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <div style={{
+                  width: 64, height: 64, borderRadius: "50%",
+                  background: "var(--bg-tertiary)", border: "2px dashed var(--border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "var(--text-secondary)",
+                }}>
+                  <Upload size={20} />
+                </div>
+              )}
+              <div>
+                <button
+                  onClick={() => photoInputRef.current?.click()}
+                  style={{
+                    padding: "6px 14px", borderRadius: 8, border: "1px solid var(--border)",
+                    background: "var(--bg-tertiary)", color: "var(--text-secondary)",
+                    fontSize: "0.8rem", cursor: "pointer", marginBottom: 4,
+                  }}
+                >
+                  Upload Photo
+                </button>
+                <input ref={photoInputRef} type="file" accept="image/*" onChange={handleFileUpload("photoData")} style={{ display: "none" }} />
+                <p style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>PNG, JPG under 500KB. Or paste a URL below.</p>
+                <input
+                  value={profile.photoUrl}
+                  onChange={(e) => update("photoUrl", e.target.value)}
+                  placeholder="Or paste image URL..."
+                  style={{ ...inputStyle, marginTop: 4, fontSize: "0.8rem", padding: "6px 10px" }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -167,6 +228,60 @@ export default function SettingsPage() {
               placeholder="AI Solutions for Every Business"
               style={inputStyle}
             />
+          </div>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>Company Logo</label>
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              {(profile.companyLogoData || profile.companyLogoUrl) ? (
+                <div style={{ position: "relative" }}>
+                  <img
+                    src={profile.companyLogoData || profile.companyLogoUrl}
+                    alt=""
+                    style={{ width: 48, height: 48, borderRadius: 8, objectFit: "contain", border: "1px solid var(--border)", background: "var(--bg-tertiary)", padding: 4 }}
+                  />
+                  <button
+                    onClick={() => { update("companyLogoData", ""); update("companyLogoUrl", ""); }}
+                    style={{
+                      position: "absolute", top: -4, right: -4, width: 20, height: 20,
+                      borderRadius: "50%", background: "#ef4444", border: "none",
+                      color: "#fff", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <div style={{
+                  width: 48, height: 48, borderRadius: 8,
+                  background: "var(--bg-tertiary)", border: "2px dashed var(--border)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "var(--text-secondary)",
+                }}>
+                  <Upload size={18} />
+                </div>
+              )}
+              <div>
+                <button
+                  onClick={() => logoInputRef.current?.click()}
+                  style={{
+                    padding: "6px 14px", borderRadius: 8, border: "1px solid var(--border)",
+                    background: "var(--bg-tertiary)", color: "var(--text-secondary)",
+                    fontSize: "0.8rem", cursor: "pointer", marginBottom: 4,
+                  }}
+                >
+                  Upload Logo
+                </button>
+                <input ref={logoInputRef} type="file" accept="image/*" onChange={handleFileUpload("companyLogoData")} style={{ display: "none" }} />
+                <p style={{ fontSize: "0.65rem", color: "var(--text-secondary)" }}>Displayed next to your company name in the sidebar. PNG, JPG under 500KB.</p>
+                <input
+                  value={profile.companyLogoUrl}
+                  onChange={(e) => update("companyLogoUrl", e.target.value)}
+                  placeholder="Or paste logo URL..."
+                  style={{ ...inputStyle, marginTop: 4, fontSize: "0.8rem", padding: "6px 10px" }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>

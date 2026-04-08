@@ -33,6 +33,9 @@ export interface OwnerProfile {
   companyTagline: string;
   role: string;
   photoUrl: string;
+  photoData: string; // base64 local upload
+  companyLogoUrl: string;
+  companyLogoData: string; // base64 local upload
   industry: string;
   communicationPrefs: {
     digestFrequency: "daily" | "weekly" | "never";
@@ -48,6 +51,9 @@ const DEFAULT_OWNER: OwnerProfile = {
   companyTagline: "AI Solutions for Every Business",
   role: "Founder & CEO",
   photoUrl: "",
+  photoData: "",
+  companyLogoUrl: "",
+  companyLogoData: "",
   industry: "AI / Technology",
   communicationPrefs: {
     digestFrequency: "weekly",
