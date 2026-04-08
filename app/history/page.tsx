@@ -6,11 +6,11 @@ import { agents } from "@/lib/agents";
 import { loadConversations, deleteConversation, loadDecks, deleteDeck, SavedConversation, SavedDeck } from "@/lib/storage";
 import {
   MessageSquare, Presentation, Trash2, Clock, Crown,
-  DollarSign, Settings, Megaphone, Compass, Download,
+  DollarSign, Settings, Megaphone, Compass, Database, Download,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
-  Crown, DollarSign, Settings, Megaphone, Compass,
+  Crown, DollarSign, Settings, Megaphone, Compass, Database,
 };
 
 export default function HistoryPage() {

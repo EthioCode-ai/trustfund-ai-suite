@@ -1,7 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { Crown, DollarSign, Settings, Megaphone, Compass, User } from "lucide-react";
+import { Crown, DollarSign, Settings, Megaphone, Compass, Database, User } from "lucide-react";
 import { ChatMessage as ChatMessageType } from "@/lib/types";
 import { agents } from "@/lib/agents";
 import {
@@ -26,6 +26,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
   Settings,
   Megaphone,
   Compass,
+  Database,
 };
 
 export function ChatMessage({ message }: { message: ChatMessageType }) {

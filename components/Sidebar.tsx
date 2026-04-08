@@ -9,6 +9,7 @@ import {
   Settings,
   Megaphone,
   Compass,
+  Database,
   Users,
   History,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/chat/coo", label: "COO — Priya", icon: Settings, color: "#f59e0b" },
   { href: "/chat/cmo", label: "CMO — Avihai", icon: Megaphone, color: "#ec4899" },
   { href: "/chat/cso", label: "CSO — Lena", icon: Compass, color: "#0ea5e9" },
+  { href: "/chat/cdo", label: "CDO — Daniel", icon: Database, color: "#14b8a6" },
   { href: "/boardroom", label: "Boardroom", icon: Users },
   { href: "/history", label: "History", icon: History },
 ];

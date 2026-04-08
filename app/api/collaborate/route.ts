@@ -65,7 +65,8 @@ Given the founder's request, decide what specific questions to ask each executiv
   "cfo": "Specific question for Marcus Chen (CFO) — ask for financial data, projections, pricing, unit economics, etc.",
   "coo": "Specific question for Priya Mekuria (COO) — ask for ops plans, hiring, timelines, process, etc.",
   "cmo": "Specific question for Avihai Solomon (CMO) — ask for market analysis, GTM, positioning, competitive data, etc.",
-  "cso": "Specific question for Lena Mikhailova (CSO) — ask for market intelligence, competitive landscape, TAM/SAM/SOM, strategic positioning, industry trends, etc."
+  "cso": "Specific question for Lena Mikhailova (CSO) — ask for market intelligence, competitive landscape, TAM/SAM/SOM, strategic positioning, industry trends, etc.",
+  "cdo": "Specific question for Daniel Mandefro (CDO) — ask for data architecture, AI model governance, privacy compliance, analytics, data monetization, ML infrastructure, etc."
 }
 \`\`\`
 
@@ -138,6 +139,7 @@ export async function POST(req: NextRequest) {
         let cooInput = "";
         let cmoInput = "";
         let csoInput = "";
+        let cdoInput = "";
 
         if (delegateMatch) {
           try {
@@ -184,6 +186,16 @@ export async function POST(req: NextRequest) {
               );
             }
 
+            if (delegation.cdo) {
+              send("status", { phase: "consulting", agent: "cdo", message: "Consulting CDO Daniel Mandefro..." });
+              queries.push(
+                queryExecutive("cdo", delegation.cdo).then((r) => {
+                  cdoInput = r;
+                  send("status", { phase: "received", agent: "cdo", message: "CDO input received" });
+                })
+              );
+            }
+
             await Promise.all(queries);
           } catch {
             // proceed without
@@ -197,6 +209,7 @@ export async function POST(req: NextRequest) {
           cooInput && `## COO (Priya Mekuria) Input:\n${cooInput}`,
           cmoInput && `## CMO (Avihai Solomon) Input:\n${cmoInput}`,
           csoInput && `## CSO (Lena Mikhailova) Input:\n${csoInput}`,
+          cdoInput && `## CDO (Daniel Mandefro) Input:\n${cdoInput}`,
         ]
           .filter(Boolean)
           .join("\n\n");

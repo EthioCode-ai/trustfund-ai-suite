@@ -1,4 +1,4 @@
-export type AgentRole = "ceo" | "cfo" | "coo" | "cmo" | "cso";
+export type AgentRole = "ceo" | "cfo" | "coo" | "cmo" | "cso" | "cdo";
 export type ModelProvider = "anthropic" | "openai" | "google";
 
 export interface Agent {
