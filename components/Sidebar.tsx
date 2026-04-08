@@ -43,7 +43,7 @@ export function Sidebar() {
       setOwner(loadOwnerProfile());
       try {
         const merged = getMergedAgents();
-        const builtInIds = navItems.filter(n => n.href.startsWith("/chat/")).map(n => n.href.replace("/chat/", ""));
+        const builtInIds = agentItems.map(n => n.href.replace("/chat/", ""));
         const custom = merged
           .filter((a) => !builtInIds.includes(a.id))
           .map((a) => ({
