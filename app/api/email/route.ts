@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { to, subject, body, replyTo } = await req.json();
+  const { to, subject, body, replyTo, deckHtml } = await req.json();
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -14,19 +14,32 @@ export async function POST(req: NextRequest) {
   const senderEmail = process.env.SENDER_EMAIL || "onboarding@resend.dev";
 
   try {
+    const emailPayload: Record<string, unknown> = {
+      from: `Neuromart.ai ExecSuite <${senderEmail}>`,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html: formatEmailHTML(subject, body, deckHtml),
+      reply_to: replyTo || undefined,
+    };
+
+    // If deck HTML is provided, also attach as a file
+    if (deckHtml) {
+      emailPayload.attachments = [
+        {
+          filename: `${subject.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "-").toLowerCase()}.html`,
+          content: Buffer.from(deckHtml).toString("base64"),
+          type: "text/html",
+        },
+      ];
+    }
+
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        from: `Neuromart.ai ExecSuite <${senderEmail}>`,
-        to: Array.isArray(to) ? to : [to],
-        subject,
-        html: formatEmailHTML(subject, body),
-        reply_to: replyTo || undefined,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
     const data = await response.json();
@@ -45,12 +58,20 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function formatEmailHTML(subject: string, body: string): string {
+function formatEmailHTML(subject: string, body: string, deckHtml?: string): string {
   const htmlBody = body
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // Remove empty markdown links
     .replace(/\n\n/g, "</p><p>")
     .replace(/\n/g, "<br>")
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>");
+
+  const deckSection = deckHtml
+    ? `<div style="margin-top: 32px; padding-top: 24px; border-top: 2px solid #6366f1;">
+        <h3 style="color: #6366f1; margin-bottom: 16px; font-size: 1rem;">📊 Presentation Attached</h3>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 8px;">The full presentation is attached as an HTML file. Open it in any browser to view the interactive slides.</p>
+      </div>`
+    : "";
 
   return `<!DOCTYPE html>
 <html>
@@ -63,6 +84,7 @@ function formatEmailHTML(subject: string, body: string): string {
   <div style="font-size: 1rem;">
     <p>${htmlBody}</p>
   </div>
+  ${deckSection}
   <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 0.8rem; color: #94a3b8;">
     Sent via Neuromart.ai ExecSuite
   </div>
