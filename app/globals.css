@@ -78,13 +78,27 @@ body {
 .chat-bubble-assistant h2 { font-size: 1.1rem; }
 .chat-bubble-assistant h3 { font-size: 1rem; }
 
-.chat-bubble-assistant ul,
+.chat-bubble-assistant ul {
+  padding-left: 24px;
+  margin: 10px 0;
+  list-style-type: disc;
+}
 .chat-bubble-assistant ol {
-  padding-left: 20px;
-  margin: 8px 0;
+  padding-left: 24px;
+  margin: 10px 0;
+  list-style-type: decimal;
+}
+.chat-bubble-assistant ul ul {
+  list-style-type: circle;
+  margin: 4px 0;
 }
 .chat-bubble-assistant li {
-  margin: 4px 0;
+  margin: 5px 0;
+  padding-left: 4px;
+  line-height: 1.6;
+}
+.chat-bubble-assistant li::marker {
+  color: #6366f1;
 }
 .chat-bubble-assistant p {
   margin: 6px 0;
